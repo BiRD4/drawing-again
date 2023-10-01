@@ -290,6 +290,13 @@ int frameDo() {
 	};
 	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
 	SDL_RenderDrawRect(ren, &cursor);
+
+	if (state.debug) {
+		int rw, rh;
+		SDL_GetRendererOutputSize(ren, &rw, &rh);
+		SDL_SetRenderDrawColor(ren, 255, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderDrawLine(ren, 0, state.easel.y, rw, state.easel.y);
+		SDL_RenderDrawLine(ren, state.easel.x, 0, state.easel.x, rh);
 	}
 
 	SDL_RenderPresent(ren);
