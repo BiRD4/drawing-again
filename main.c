@@ -271,8 +271,14 @@ int frameDo() {
 					ren, 127, 127, 127,
 					SDL_ALPHA_OPAQUE
 					);
-		SDL_Rect r = {c->x - 1, c->y - 1, c->w + 2, c->h + 2};
-		SDL_RenderDrawRect(ren, &r);
+		SDL_Rect border = {
+			TO_COORD_SCREEN_X(c->x) - 1,
+			TO_COORD_SCREEN_Y(c->y) - 1,
+			state.easel.s * c->w + 2,
+			state.easel.s * c->h + 2
+		};
+		SDL_RenderDrawRect(ren, &border);
+	}
 	}
 
 	SDL_RenderPresent(ren);
