@@ -279,6 +279,17 @@ int frameDo() {
 		};
 		SDL_RenderDrawRect(ren, &border);
 	}
+
+	int mx, my;
+	SDL_GetMouseState(&mx, &my);
+	SDL_Rect cursor = {
+		TO_COORD_SCREEN_X(TO_COORD_EASEL_X(mx)),
+		TO_COORD_SCREEN_Y(TO_COORD_EASEL_Y(my)),
+		state.easel.s,
+		state.easel.s
+	};
+	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
+	SDL_RenderDrawRect(ren, &cursor);
 	}
 
 	SDL_RenderPresent(ren);
