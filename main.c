@@ -248,9 +248,188 @@ canvasFix_cleanup:
 	return flag;
 }
 
-void dragSet(enum ActionDrag action)
+int setDrag(enum ActionDrag action)
 {
+	int flag = 0;
+
+	switch (state.drag.action) {
+		case D_NONE:
+			break;
+		case D_PANZOOM:
+			if (state.space)
+				SDL_WarpMouseInWindow(
+						win,
+						state.drag.panZoom.initX,
+						state.drag.panZoom.initY
+						);
+			SDL_CaptureMouse(SDL_FALSE);
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			break;
+		case D_CANVASNEW:
+			// TODO
+			break;
+		case D_CANVASTRANSFORM:
+			state.drag.canvasTransform.moveX = 0;
+			state.drag.canvasTransform.moveY = 0;
+			state.drag.canvasTransform.resizeX = 0;
+			state.drag.canvasTransform.resizeY = 0;
+			break;
+		case D_DRAWPIXEL:
+			break;
+		case D_DRAWLINE:
+			// TODO
+			break;
+		default:
+			break;
+	}
+
+	switch (action) {
+		case D_NONE:
+			break;
+		case D_PANZOOM:
+			{
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				state.drag.panZoom.offX = state.easel.x - mx;
+				state.drag.panZoom.offY = state.easel.y - my;
+				state.drag.panZoom.initScale = state.easel.s;
+
+				SDL_CaptureMouse(SDL_TRUE);
+				if (state.space) {
+					SDL_SetRelativeMouseMode(SDL_TRUE);
+					state.drag.panZoom.initX = mx;
+					state.drag.panZoom.initY = my;
+				}
+				break;
+			}
+		case D_CANVASNEW:
+			{
+				// TODO
+				break;
+			}
+		case D_CANVASTRANSFORM:
+			{
+				// TODO
+				break;
+			}
+		case D_DRAWPIXEL:
+			{
+				// TODO
+				break;
+			}
+		case D_DRAWLINE:
+			{
+				// TODO
+				break;
+			}
+		default:
+			break;
+	}
+
+	state.drag.action = action;
+
+setDrag_cleanupNoError:
+	flag = 1;
+setDrag_cleanup:
+	return flag;
+}
+
+int setScope(enum Scope scope)
+{
+	int flag = 0;
+
+	if (state.drag.action != D_PANZOOM) {
+		if (!setDrag(D_NONE))
+			goto setScope_cleanup;
+	}
+	state.scope = scope;
+
+	flag = 1;
+setScope_cleanup:
+	return flag;
+}
+
+int setModeEasel(enum modeEasel mode)
+{
+	int flag = 0;
+
 	// TODO
+
+	flag = 1;
+setModeEasel_cleanup:
+	return flag;
+}
+
+int setModeCanvas(enum modeCanvas mode)
+{
+	int flag = 0;
+
+	// TODO
+
+	flag = 1;
+setModeCanvas_cleanup:
+	return flag;
+}
+
+int setSpace(int space)
+{
+	int flag = 0;
+
+	if (space) {
+		switch (state.drag.action) {
+			case D_NONE:
+				break;
+			case D_PANZOOM:
+				{
+					int mx, my;
+					SDL_GetMouseState(&mx, &my);
+					state.drag.panZoom.initX = mx;
+					state.drag.panZoom.initY = my;
+					SDL_SetRelativeMouseMode(SDL_TRUE);
+					break;
+				}
+			case D_CANVASNEW:
+				break;
+			case D_CANVASTRANSFORM:
+				break;
+			case D_DRAWPIXEL:
+				break;
+			case D_DRAWLINE:
+				break;
+			default:
+				break;
+		}
+	} else {
+		switch (state.drag.action) {
+			case D_NONE:
+				break;
+			case D_PANZOOM:
+				SDL_WarpMouseInWindow(
+						win,
+						state.drag.panZoom.initX,
+						state.drag.panZoom.initY
+						);
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+				break;
+			case D_CANVASNEW:
+				break;
+			case D_CANVASTRANSFORM:
+				break;
+			case D_DRAWPIXEL:
+				break;
+			case D_DRAWLINE:
+				break;
+			default:
+				break;
+		}
+	}
+
+	state.space = space;
+
+setSpace_cleanupNoError:
+	flag = 1;
+setSpace_cleanup:
+	return flag;
 }
 
 int frameDo() {
