@@ -256,14 +256,14 @@ int setDrag(enum ActionDrag action)
 		case D_NONE:
 			break;
 		case D_PANZOOM:
+			SDL_CaptureMouse(SDL_FALSE);
+			SDL_SetRelativeMouseMode(SDL_FALSE);
 			if (state.space)
 				SDL_WarpMouseInWindow(
 						win,
 						state.drag.panZoom.initX,
 						state.drag.panZoom.initY
 						);
-			SDL_CaptureMouse(SDL_FALSE);
-			SDL_SetRelativeMouseMode(SDL_FALSE);
 			break;
 		case D_CANVASNEW:
 			// TODO
@@ -404,12 +404,12 @@ int setSpace(int space)
 			case D_NONE:
 				break;
 			case D_PANZOOM:
+				SDL_SetRelativeMouseMode(SDL_FALSE);
 				SDL_WarpMouseInWindow(
 						win,
 						state.drag.panZoom.initX,
 						state.drag.panZoom.initY
 						);
-				SDL_SetRelativeMouseMode(SDL_FALSE);
 				break;
 			case D_CANVASNEW:
 				break;
