@@ -485,6 +485,103 @@ frameDo_cleanup:
 	return flag;
 }
 
+int eventKeyDown(SDL_Event *e)
+{
+	int flag = 0;
+
+	if (e->key.repeat)
+		goto eventKeyDown_cleanupNoError;
+
+	switch (e->key.keysym.sym) {
+		case SDLK_F12:
+			state.debug = !state.debug;
+			break;
+		case SDLK_v:
+			setScope(S_EASEL);
+			break;
+		case SDLK_c:
+			setScope(S_CANVAS);
+			break;
+		case SDLK_g:
+			setDrag(D_PANZOOM);
+			break;
+		case SDLK_SPACE:
+			setSpace(1);
+			break;
+		default:
+			break;
+	}
+
+eventKeyDown_cleanupNoError:
+	flag = 1;
+eventKeyDown_cleanup:
+	return flag;
+}
+
+int eventKeyUp(SDL_Event *e)
+{
+	int flag = 0;
+
+	switch (e->key.keysym.sym) {
+		case SDLK_g:
+			if (state.drag.action == D_PANZOOM)
+				setDrag(D_NONE);
+			break;
+		case SDLK_SPACE:
+			setSpace(0);
+			break;
+		default:
+			break;
+	}
+
+	flag = 1;
+eventKeyUp_cleanup:
+	return flag;
+}
+
+int eventMouseMotion(SDL_Event *e)
+{
+	int flag = 0;
+
+	switch (state.drag.action) {
+		case D_NONE:
+			break;
+		case D_PANZOOM:
+			if (!state.space) {
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				state.easel.x = mx + (
+						state.easel.s
+						* state.drag.panZoom.offX
+						/ state.drag.panZoom.initScale
+						);
+				state.easel.y = my + (
+						state.easel.s
+						* state.drag.panZoom.offY
+						/ state.drag.panZoom.initScale
+						);
+			} else {
+				// you don't use offY in here
+				// TODO
+			}
+			break;
+		case D_CANVASNEW:
+			break;
+		case D_CANVASTRANSFORM:
+			break;
+		case D_DRAWPIXEL:
+			break;
+		case D_DRAWLINE:
+			break;
+		default:
+			break;
+	}
+
+	flag = 1;
+eventMouseMotion_cleanup:
+	return flag;
+}
+
 int eventDo(SDL_Event *e)
 {
 	int flag = 0;
@@ -495,10 +592,16 @@ int eventDo(SDL_Event *e)
 				state.quit = 1;
 				break;
 			case SDL_KEYDOWN:
+				if (!eventKeyDown(e))
+					goto eventDo_cleanup;
 				break;
 			case SDL_KEYUP:
+				if (!eventKeyUp(e))
+					goto eventDo_cleanup;
 				break;
 			case SDL_MOUSEMOTION:
+				if (!eventMouseMotion(e))
+					goto eventDo_cleanup;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				break;
