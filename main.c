@@ -31,9 +31,7 @@ struct {
 
 	int quit;
 
-	enum {EASEL, CANVAS} scope;
-	enum {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
-	enum {C_PIXEL, C_LINE, C_FILL} modeCanvas;
+	int debug;
 
 	struct {
 		int x;
@@ -41,16 +39,29 @@ struct {
 		int s;
 	} easel;
 
+	enum Scope {S_EASEL, S_CANVAS} scope;
+	enum modeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
+	enum modeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
+
+	int space;
+
 	struct {
 		enum ActionDrag {
 			D_NONE,
-			D_PAN,
-			D_ZOOM,
+			D_PANZOOM,
 			D_CANVASNEW,
 			D_CANVASTRANSFORM,
 			D_DRAWPIXEL,
 			D_DRAWLINE
 		} action;
+		struct {
+			int offX;
+			int offY;
+			int initScale;
+
+			int initX;
+			int initY;
+		} panZoom;
 		struct {
 			int moveX;
 			int moveY;
@@ -68,9 +79,11 @@ struct {
 
 } state = {
 	0,
-	EASEL, E_EDIT, C_PIXEL,
-	{0, 0, 1},
-	{D_NONE, {0, 0, 0, 0}, {0, 0}},
+	0,
+	{0, 0, 16},
+	S_EASEL, E_EDIT, C_PIXEL,
+	0,
+	{D_NONE, {0, 0, 0}, {0, 0, 0, 0}, {0, 0}},
 	NULL, NULL
 };
 
