@@ -90,6 +90,15 @@ struct {
 SDL_Window *win;
 SDL_Renderer *ren;
 
+int ceiling(float f)
+{
+	int i = (int) f;
+	if (f - i == 0)
+		return i;
+	else
+		return i + 1;
+}
+
 int init() {
 	int flag = 0;
 
