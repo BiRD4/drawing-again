@@ -459,11 +459,20 @@ int frameDo() {
 		SDL_RenderDrawRect(ren, &border);
 	}
 
-	int mx, my;
-	SDL_GetMouseState(&mx, &my);
+	int cursorX;
+	int cursorY;
+	if (state.drag.action == D_PANZOOM && state.space) {
+		cursorX = state.drag.panZoom.initX;
+		cursorY = state.drag.panZoom.initY;
+	} else {
+		int mx, my;
+		SDL_GetMouseState(&mx, &my);
+		cursorX = mx;
+		cursorY = my;
+	}
 	SDL_Rect cursor = {
-		TO_COORD_SCREEN_X(TO_COORD_EASEL_X(mx)),
-		TO_COORD_SCREEN_Y(TO_COORD_EASEL_Y(my)),
+		TO_COORD_SCREEN_X(TO_COORD_EASEL_X(cursorX)),
+		TO_COORD_SCREEN_Y(TO_COORD_EASEL_Y(cursorY)),
 		state.easel.s,
 		state.easel.s
 	};
