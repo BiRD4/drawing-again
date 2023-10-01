@@ -61,6 +61,7 @@ struct {
 
 			int initX;
 			int initY;
+			int accumStep;
 		} panZoom;
 		struct {
 			int moveX;
@@ -83,7 +84,7 @@ struct {
 	{0, 0, 16},
 	S_EASEL, E_EDIT, C_PIXEL,
 	0,
-	{D_NONE, {0, 0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0}},
+	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0}},
 	NULL, NULL
 };
 
@@ -308,6 +309,7 @@ int setDrag(enum ActionDrag action)
 					SDL_SetRelativeMouseMode(SDL_TRUE);
 					state.drag.panZoom.initX = mx;
 					state.drag.panZoom.initY = my;
+					state.drag.panZoom.accumStep = 0;
 				}
 				break;
 			}
@@ -565,24 +567,52 @@ int eventMouseMotion(SDL_Event *e)
 		case D_NONE:
 			break;
 		case D_PANZOOM:
-			if (!state.space) {
-				int mx, my;
-				SDL_GetMouseState(&mx, &my);
-				state.easel.x = mx + (
+			{
+				int focusX;
+				int focusY;
+				if (state.space) {
+					if (!(state.easel.s == 64 && e->motion.yrel < 0)
+					&& (!(state.easel.s ==  1 && e->motion.yrel > 0)))
+						state.drag.panZoom.accumStep -= e->motion.yrel;
+					else
+						state.drag.panZoom.accumStep = 0;
+					int accum = state.drag.panZoom.accumStep;
+					if (accum >= 0) {
+						int quota = ceiling(48.0 / state.easel.s);
+						while (accum >= quota && state.easel.s < 64) {
+							accum -= quota;
+							++state.easel.s;
+							quota = ceiling(48.0 / state.easel.s);
+						}
+					} else if (state.easel.s > 1) {
+						int quota = ceiling(48.0 /(state.easel.s - 1));
+						while (-accum >= quota && state.easel.s > 1) {
+							accum += quota;
+							--state.easel.s;
+							quota = ceiling(48.0 /(state.easel.s - 1));
+						}
+					}
+					state.drag.panZoom.accumStep = accum;
+					focusX = state.drag.panZoom.initX;
+					focusY = state.drag.panZoom.initY;
+				} else {
+					int mx, my;
+					SDL_GetMouseState(&mx, &my);
+					focusX = mx;
+					focusY = my;
+				}
+				state.easel.x = focusX + (
 						state.easel.s
 						* state.drag.panZoom.offX
 						/ state.drag.panZoom.initScale
 						);
-				state.easel.y = my + (
+				state.easel.y = focusY + (
 						state.easel.s
 						* state.drag.panZoom.offY
 						/ state.drag.panZoom.initScale
 						);
-			} else {
-				// you don't use offY in here
-				// TODO
+				break;
 			}
-			break;
 		case D_CANVASNEW:
 			break;
 		case D_CANVASTRANSFORM:
