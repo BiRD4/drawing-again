@@ -364,7 +364,11 @@ int setModeEasel(enum modeEasel mode)
 {
 	int flag = 0;
 
-	// TODO
+	if (state.drag.action != D_PANZOOM) {
+		if (!setDrag(D_NONE))
+			goto setModeEasel_cleanup;
+	}
+	state.modeEasel = mode;
 
 	flag = 1;
 setModeEasel_cleanup:
@@ -375,7 +379,11 @@ int setModeCanvas(enum modeCanvas mode)
 {
 	int flag = 0;
 
-	// TODO
+	if (state.drag.action != D_PANZOOM) {
+		if (!setDrag(D_NONE))
+			goto setModeCanvas_cleanup;
+	}
+	state.modeCanvas = mode;
 
 	flag = 1;
 setModeCanvas_cleanup:
