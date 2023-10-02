@@ -39,6 +39,7 @@ struct {
 		int s;
 	} easel;
 
+	// TODO add S_PICK and C_SELECT
 	enum Scope {S_EASEL, S_CANVAS} scope;
 	enum modeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
 	enum modeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
@@ -523,18 +524,136 @@ int eventKeyDown(SDL_Event *e)
 	switch (e->key.keysym.sym) {
 		case SDLK_F12:
 			state.debug = !state.debug;
-			break;
+			goto eventKeyDown_cleanupNoError;
 		case SDLK_v:
 			setScope(S_EASEL);
-			break;
+			goto eventKeyDown_cleanupNoError;
 		case SDLK_c:
 			setScope(S_CANVAS);
-			break;
+			goto eventKeyDown_cleanupNoError;
 		case SDLK_g:
 			setDrag(D_PANZOOM);
-			break;
+			goto eventKeyDown_cleanupNoError;
 		case SDLK_SPACE:
 			setSpace(1);
+			goto eventKeyDown_cleanupNoError;
+		default:
+			break;
+	}
+	switch (state.scope) {
+		case S_EASEL:
+			switch (e->key.keysym.sym) {
+				case SDLK_r:
+					setModeEasel(E_EDIT);
+					goto eventKeyDown_cleanupNoError;
+				case SDLK_e:
+					setModeEasel(E_TRANSFORM);
+					goto eventKeyDown_cleanupNoError;
+				case SDLK_w:
+					setModeEasel(E_SELECT);
+					goto eventKeyDown_cleanupNoError;
+				default:
+					break;
+			}
+			switch (state.modeEasel) {
+				case E_EDIT:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						default:
+							break;
+					}
+					break;
+				case E_TRANSFORM:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						case SDLK_s:
+							break;
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case E_SELECT:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						default:
+							break;
+					}
+					break;
+				default:
+					break;
+			}
+			break;
+		case S_CANVAS:
+			switch (e->key.keysym.sym) {
+				case SDLK_r:
+					setModeCanvas(C_PIXEL);
+					goto eventKeyDown_cleanupNoError;
+				case SDLK_e:
+					setModeCanvas(C_LINE);
+					goto eventKeyDown_cleanupNoError;
+				case SDLK_w:
+					setModeCanvas(C_FILL);
+					goto eventKeyDown_cleanupNoError;
+				default:
+					break;
+			}
+			switch (state.modeCanvas) {
+				case C_PIXEL:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						case SDLK_s:
+							break;
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_LINE:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						case SDLK_s:
+							break;
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_FILL:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						case SDLK_s:
+							break;
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				default:
+					break;
+			}
 			break;
 		default:
 			break;
