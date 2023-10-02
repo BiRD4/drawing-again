@@ -673,9 +673,73 @@ int eventKeyUp(SDL_Event *e)
 		case SDLK_g:
 			if (state.drag.action == D_PANZOOM)
 				setDrag(D_NONE);
-			break;
+			goto eventKeyUp_cleanup;
 		case SDLK_SPACE:
 			setSpace(0);
+			goto eventKeyUp_cleanup;
+		default:
+			break;
+	}
+	switch (state.scope) {
+		case S_EASEL:
+			switch (state.modeEasel) {
+				case E_EDIT:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						default:
+							break;
+					}
+					break;
+				case E_TRANSFORM:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							break;
+						case SDLK_d:
+							break;
+						case SDLK_s:
+							break;
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case E_SELECT:
+					break;
+				default:
+					break;
+			}
+			break;
+		case S_CANVAS:
+			switch (state.modeCanvas) {
+				case C_PIXEL:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+						case SDLK_d:
+						case SDLK_s:
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_LINE:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+						case SDLK_d:
+						case SDLK_s:
+						case SDLK_a:
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_FILL:
+					break;
+				default:
+					break;
+			}
 			break;
 		default:
 			break;
