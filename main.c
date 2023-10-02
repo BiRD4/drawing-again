@@ -223,10 +223,10 @@ canvasDel_cleanup:
 	return flag;
 }
 
-struct canvas *canvasGet(struct canvasArray ca, int x, int y)
+struct canvas *canvasGet(struct canvasArray *ca, int x, int y)
 {
-	for (int i = 0; i < ca.size; ++i) {
-		struct canvas *c = ca.array[i];
+	for (int i = 0; i < ca->size; ++i) {
+		struct canvas *c = ca->array[i];
 		if (TO_COORD_EASEL_X(x) >= c->x &&
 		    TO_COORD_EASEL_Y(y) >= c->y &&
 		    TO_COORD_EASEL_X(x) <  c->x + c->w &&
@@ -234,7 +234,7 @@ struct canvas *canvasGet(struct canvasArray ca, int x, int y)
 		   )
 			return c;
 	}
-
+	return NULL;
 }
 
 int canvasFix(struct canvas *c)
