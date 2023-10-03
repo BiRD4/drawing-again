@@ -153,7 +153,8 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->w = w;
 	c->h = h;
 	c->surf = SDL_CreateRGBSurfaceWithFormat(
-			0, w, h, 32, SDL_PIXELFORMAT_ARGB32
+			0, w, h, 32,
+			SDL_PIXELFORMAT_ARGB32
 			);
 	return c;
 }
@@ -164,15 +165,16 @@ int canvasAdd(struct canvasArray *ca, struct canvas *c)
 	if (!c)
 		goto canvasAdd_cleanup;
 
-	struct canvasArray newArr = {ca->size + 1, NULL};
-	newArr.array = realloc(
-			ca->array, newArr.size * sizeof (struct canvas *)
+	struct canvasArray newArray = {ca->size + 1, NULL};
+	newArray.array = realloc(
+			ca->array,
+			newArray.size * sizeof (struct canvas *)
 			);
-	if (!newArr.array)
+	if (!newArray.array)
 		goto canvasAdd_cleanup;
-	newArr.array[newArr.size - 1] = c;
-	ca->size = newArr.size;
-	ca->array = newArr.array;
+	newArray.array[newArray.size - 1] = c;
+	ca->size = newArray.size;
+	ca->array = newArray.array;
 
 	flag = 1;
 canvasAdd_cleanup:
@@ -187,19 +189,20 @@ int canvasRem(struct canvasArray *ca, struct canvas *c)
 
 	for (int i = 0; i < ca->size; ++i) {
 		if (ca->array[i] == c) {
-			struct canvasArray newArr = {ca->size - 1, NULL};
-			newArr.array = calloc(
-					newArr.size, sizeof (struct canvas *)
+			struct canvasArray newArray = {ca->size - 1, NULL};
+			newArray.array = calloc(
+					newArray.size,
+					sizeof (struct canvas *)
 					);
-			if (!newArr.array)
+			if (!newArray.array)
 				goto canvasRem_cleanup;
 			for (int j = 0; j < i; ++j)
-				newArr.array[j] = ca->array[j];
-			for (int j = i; j < newArr.size; ++j)
-				newArr.array[j] = ca->array[j + 1];
+				newArray.array[j] = ca->array[j];
+			for (int j = i; j < newArray.size; ++j)
+				newArray.array[j] = ca->array[j + 1];
 			free(ca->array);
-			ca->size = newArr.size;
-			ca->array = newArr.array;
+			ca->size = newArray.size;
+			ca->array = newArray.array;
 		}
 	}
 
@@ -228,11 +231,10 @@ struct canvas *canvasGet(struct canvasArray *ca, int x, int y)
 {
 	for (int i = 0; i < ca->size; ++i) {
 		struct canvas *c = ca->array[i];
-		if (TO_COORD_EASEL_X(x) >= c->x &&
-		    TO_COORD_EASEL_Y(y) >= c->y &&
-		    TO_COORD_EASEL_X(x) <  c->x + c->w &&
-		    TO_COORD_EASEL_Y(y) <  c->y + c->h
-		   )
+		if (x >= c->x
+		 && y >= c->y
+		 && x <  c->x + c->w
+		 && y <  c->y + c->h)
 			return c;
 	}
 	return NULL;
@@ -246,7 +248,8 @@ int canvasFix(struct canvas *c)
 
 	if (c->w != c->surf->w || c->h != c->surf->h) {
 		SDL_Surface *newSurf = SDL_CreateRGBSurfaceWithFormat(
-				0, c->w, c->h, 32, SDL_PIXELFORMAT_ARGB32
+				0, c->w, c->h, 32,
+				SDL_PIXELFORMAT_ARGB32
 				);
 		if (!newSurf)
 			goto canvasFix_cleanup;
@@ -346,14 +349,26 @@ setDrag_cleanup:
 	return flag;
 }
 
-int setScope(enum Scope scope)
+int resetDrag()
 {
 	int flag = 0;
 
 	if (state.drag.action != D_PANZOOM) {
 		if (!setDrag(D_NONE))
-			goto setScope_cleanup;
+			goto resetDrag_cleanup;
 	}
+
+	flag = 1;
+resetDrag_cleanup:
+	return flag;
+}
+
+int setScope(enum Scope scope)
+{
+	int flag = 0;
+
+	if (!resetDrag())
+		goto setScope_cleanup;
 	state.scope = scope;
 
 	flag = 1;
@@ -365,10 +380,8 @@ int setModeEasel(enum modeEasel mode)
 {
 	int flag = 0;
 
-	if (state.drag.action != D_PANZOOM) {
-		if (!setDrag(D_NONE))
-			goto setModeEasel_cleanup;
-	}
+	if (!resetDrag())
+		goto setModeEasel_cleanup;
 	state.modeEasel = mode;
 
 	flag = 1;
@@ -380,10 +393,8 @@ int setModeCanvas(enum modeCanvas mode)
 {
 	int flag = 0;
 
-	if (state.drag.action != D_PANZOOM) {
-		if (!setDrag(D_NONE))
-			goto setModeCanvas_cleanup;
-	}
+	if (!resetDrag())
+		goto setModeCanvas_cleanup;
 	state.modeCanvas = mode;
 
 	flag = 1;
@@ -500,9 +511,10 @@ int frameDo() {
 	SDL_RenderDrawRect(ren, &cursor);
 
 	if (state.debug) {
+		SDL_SetRenderDrawColor(ren, 255, 0, 0, SDL_ALPHA_OPAQUE);
+
 		int rw, rh;
 		SDL_GetRendererOutputSize(ren, &rw, &rh);
-		SDL_SetRenderDrawColor(ren, 255, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawLine(ren, 0, state.easel.y, rw, state.easel.y);
 		SDL_RenderDrawLine(ren, state.easel.x, 0, state.easel.x, rh);
 	}
@@ -586,7 +598,11 @@ int eventKeyDown(SDL_Event *e)
 						struct canvas *c;
 						case SDLK_f:
 							SDL_GetMouseState(&mx, &my);
-							c = canvasGet(state.canvasArr, mx, my);
+							c = canvasGet(
+								state.canvasArr,
+								TO_COORD_EASEL_X(mx),
+								TO_COORD_EASEL_Y(my)
+								);
 							if (c && !c->isSel) {
 								canvasAdd(state.canvasSel, c);
 								c->isSel = 1;
@@ -594,7 +610,11 @@ int eventKeyDown(SDL_Event *e)
 							break;
 						case SDLK_d:
 							SDL_GetMouseState(&mx, &my);
-							c = canvasGet(state.canvasArr, mx, my);
+							c = canvasGet(
+								state.canvasArr,
+								TO_COORD_EASEL_X(mx),
+								TO_COORD_EASEL_Y(my)
+								);
 							if (c && c->isSel) {
 								canvasRem(state.canvasSel, c);
 								c->isSel = 0;
