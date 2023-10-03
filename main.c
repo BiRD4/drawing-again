@@ -198,7 +198,7 @@ canvasAdd_cleanup:
 int canvasRem(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
-	if (!c)
+	if (!c || ca->size < 1)
 		goto canvasRem_cleanup;
 
 	MAP_CANVASES(ca, i, ci) {
