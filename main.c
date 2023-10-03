@@ -229,7 +229,7 @@ canvasDel_cleanup:
 
 struct canvas *canvasGet(struct canvasArray *ca, int x, int y)
 {
-	for (int i = 0; i < ca->size; ++i) {
+	for (int i = ca->size - 1; i >= 0; --i) {
 		struct canvas *c = ca->array[i];
 		if (x >= c->x
 		 && y >= c->y
