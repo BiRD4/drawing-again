@@ -818,6 +818,7 @@ int eventMouseMotion(SDL_Event *e)
 						}
 					}
 					state.drag.panZoom.accumStep = accum;
+					state.drag.panZoom.initX += e->motion.xrel;
 					focusX = state.drag.panZoom.initX;
 					focusY = state.drag.panZoom.initY;
 				} else {
