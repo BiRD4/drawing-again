@@ -286,6 +286,31 @@ canvasFix_cleanup:
 	return flag;
 }
 
+struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
+{
+	if (!ca)
+		return NULL;
+
+	struct canvasArray *newArray = malloc(sizeof (struct canvasArray));
+	if (!newArray)
+		return NULL;
+	newArray->size = ca->size;
+	newArray->array = calloc(newArray->size, sizeof (struct canvas *));
+	if (!newArray->array)
+		return NULL;
+	MAP_CANVASES(ca, i, c) {
+		newArray->array[i] = c;
+	}
+
+	return newArray;
+}
+
+void canvasArrayFree(struct canvasArray *ca)
+{
+	free(ca->array);
+	free(ca);
+}
+
 int setDrag(enum ActionDrag action)
 {
 	int flag = 0;
