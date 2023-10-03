@@ -248,6 +248,22 @@ struct canvas *canvasGet(struct canvasArray *ca, int x, int y)
 	return NULL;
 }
 
+int canvasMove(struct canvas *c, int x, int y, int w, int h)
+{
+	int flag = 0;
+	if (!c)
+		goto canvasMove_cleanup;
+
+	c->x = x;
+	c->y = y;
+	c->w = (w > 0) ? w : 1;
+	c->h = (h > 0) ? h : 1;
+
+	flag = 1;
+canvasMove_cleanup:
+	return flag;
+}
+
 int canvasFix(struct canvas *c)
 {
 	int flag = 0;
