@@ -333,9 +333,9 @@ int setDrag(enum ActionDrag action)
 			{
 				struct canvasArray *oldArray =
 					canvasArrayCopy(state.canvasSel);
-				MAP_CANVASES(oldArray, i, cFix) {
-					canvasFix(cFix);
-					canvasRem(state.canvasSel, cFix);
+				MAP_CANVASES(oldArray, i, c) {
+					canvasFix(c);
+					canvasRem(state.canvasSel, c);
 				}
 				canvasArrayFree(oldArray);
 			}
