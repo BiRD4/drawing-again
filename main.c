@@ -346,11 +346,26 @@ int setDrag(enum ActionDrag action)
 			}
 			break;
 		case D_CANVASTRANSFORM:
-			state.drag.canvasTransform.setX = 0;
-			state.drag.canvasTransform.setY = 0;
-			state.drag.canvasTransform.setW = 0;
-			state.drag.canvasTransform.setH = 0;
-			break;
+			{
+				MAP_CANVASES(state.canvasSel, i, c) {
+					canvasFix(c);
+				}
+				if (state.canvasSel->size == 1
+				&& !state.canvasSel->array[0]->isSel)
+					canvasRem(
+							state.canvasSel,
+							state.canvasSel->array[0]
+							);
+				free(state.drag.canvasTransform.offX);
+				free(state.drag.canvasTransform.offY);
+				free(state.drag.canvasTransform.offW);
+				free(state.drag.canvasTransform.offH);
+				state.drag.canvasTransform.offX = NULL;
+				state.drag.canvasTransform.offY = NULL;
+				state.drag.canvasTransform.offW = NULL;
+				state.drag.canvasTransform.offH = NULL;
+				break;
+			}
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
@@ -398,7 +413,47 @@ int setDrag(enum ActionDrag action)
 			}
 		case D_CANVASTRANSFORM:
 			{
-				// TODO
+				if (state.canvasSel->size == 0) {
+					int mx, my;
+					SDL_GetMouseState(&mx, &my);
+					struct canvas *c = canvasGet(
+							state.canvasArr,
+							TO_COORD_EASEL_X(mx),
+							TO_COORD_EASEL_Y(my)
+							);
+					if (!c)
+						goto setDrag_cleanupNoError;
+					canvasAdd(state.canvasSel, c);
+				}
+				int *newArray;
+				newArray = realloc(
+						state.drag.canvasTransform.offX,
+						(state.canvasSel->size * sizeof (int *))
+						);
+				if (!newArray)
+					goto setDrag_cleanup;
+				state.drag.canvasTransform.offX = newArray;
+				newArray = realloc(
+						state.drag.canvasTransform.offY,
+						(state.canvasSel->size * sizeof (int *))
+						);
+				if (!newArray)
+					goto setDrag_cleanup;
+				state.drag.canvasTransform.offY = newArray;
+				newArray = realloc(
+						state.drag.canvasTransform.offW,
+						(state.canvasSel->size * sizeof (int *))
+						);
+				if (!newArray)
+					goto setDrag_cleanup;
+				state.drag.canvasTransform.offW = newArray;
+				newArray = realloc(
+						state.drag.canvasTransform.offH,
+						(state.canvasSel->size * sizeof (int *))
+						);
+				if (!newArray)
+					goto setDrag_cleanup;
+				state.drag.canvasTransform.offH = newArray;
 				break;
 			}
 		case D_DRAWPIXEL:
@@ -683,14 +738,67 @@ int eventKeyDown(SDL_Event *e)
 					break;
 				case E_TRANSFORM:
 					switch (e->key.keysym.sym) {
+						int mx, my;
 						case SDLK_f:
+						{
+							SDL_GetMouseState(&mx, NULL);
+							state.drag.canvasTransform.setX = 1;
+							if (state.drag.action != D_CANVASTRANSFORM)
+								setDrag(D_CANVASTRANSFORM);
+							if (state.canvasSel->size != 0) {
+								MAP_CANVASES(state.canvasSel, i, c) {
+									state.drag.canvasTransform.offX[i] =
+										c->x
+										- TO_COORD_EASEL_X(mx);
+								}
+							}
 							break;
+						}
 						case SDLK_d:
+						{
+							SDL_GetMouseState(NULL, &my);
+							state.drag.canvasTransform.setY = 1;
+							if (state.drag.action != D_CANVASTRANSFORM)
+								setDrag(D_CANVASTRANSFORM);
+							if (state.canvasSel->size != 0) {
+								MAP_CANVASES(state.canvasSel, i, c) {
+									state.drag.canvasTransform.offY[i] =
+										c->y
+										- TO_COORD_EASEL_Y(my);
+								}
+							}
 							break;
+						}
 						case SDLK_s:
+						{
+							SDL_GetMouseState(&mx, NULL);
+							state.drag.canvasTransform.setW = 1;
+							if (state.drag.action != D_CANVASTRANSFORM)
+								setDrag(D_CANVASTRANSFORM);
+							if (state.canvasSel->size != 0) {
+								MAP_CANVASES(state.canvasSel, i, c) {
+									state.drag.canvasTransform.offW[i] =
+										c->x + c->w
+										- TO_COORD_EASEL_X(mx);
+								}
+							}
 							break;
+						}
 						case SDLK_a:
+						{
+							SDL_GetMouseState(NULL, &my);
+							state.drag.canvasTransform.setH = 1;
+							if (state.drag.action != D_CANVASTRANSFORM)
+								setDrag(D_CANVASTRANSFORM);
+							if (state.canvasSel->size != 0) {
+								MAP_CANVASES(state.canvasSel, i, c) {
+									state.drag.canvasTransform.offH[i] =
+										c->y + c->h
+										- TO_COORD_EASEL_Y(my);
+								}
+							}
 							break;
+						}
 						default:
 							break;
 					}
@@ -832,12 +940,32 @@ int eventKeyUp(SDL_Event *e)
 				case E_TRANSFORM:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							state.drag.canvasTransform.setX = 0;
+							if (state.drag.canvasTransform.setY == 0
+							 && state.drag.canvasTransform.setW == 0
+							 && state.drag.canvasTransform.setH == 0)
+								setDrag(D_NONE);
 							break;
 						case SDLK_d:
+							state.drag.canvasTransform.setY = 0;
+							if (state.drag.canvasTransform.setX == 0
+							 && state.drag.canvasTransform.setW == 0
+							 && state.drag.canvasTransform.setH == 0)
+								setDrag(D_NONE);
 							break;
 						case SDLK_s:
+							state.drag.canvasTransform.setW = 0;
+							if (state.drag.canvasTransform.setX == 0
+							 && state.drag.canvasTransform.setY == 0
+							 && state.drag.canvasTransform.setH == 0)
+								setDrag(D_NONE);
 							break;
 						case SDLK_a:
+							state.drag.canvasTransform.setH = 0;
+							if (state.drag.canvasTransform.setX == 0
+							 && state.drag.canvasTransform.setY == 0
+							 && state.drag.canvasTransform.setW == 0)
+								setDrag(D_NONE);
 							break;
 						default:
 							break;
@@ -956,7 +1084,30 @@ int eventMouseMotion(SDL_Event *e)
 				break;
 			}
 		case D_CANVASTRANSFORM:
-			break;
+			{
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				MAP_CANVASES(state.canvasSel, i, c) {
+					int x = state.drag.canvasTransform.setX
+						? TO_COORD_EASEL_X(mx)
+						    + state.drag.canvasTransform.offX[i]
+						: c->x;
+					int y = state.drag.canvasTransform.setY
+						? TO_COORD_EASEL_Y(my)
+						    + state.drag.canvasTransform.offY[i]
+						: c->y;
+					int w = state.drag.canvasTransform.setW
+						? TO_COORD_EASEL_X(mx) - c->x
+						    + state.drag.canvasTransform.offW[i]
+						: c->w;
+					int h = state.drag.canvasTransform.setH
+						? TO_COORD_EASEL_Y(my) - c->y
+						    + state.drag.canvasTransform.offH[i]
+						: c->h;
+					canvasMove(c, x, y, w, h);
+				}
+				break;
+			}
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
