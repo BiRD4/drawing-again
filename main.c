@@ -582,9 +582,23 @@ int eventKeyDown(SDL_Event *e)
 					break;
 				case E_SELECT:
 					switch (e->key.keysym.sym) {
+						int mx, my;
+						struct canvas *c;
 						case SDLK_f:
+							SDL_GetMouseState(&mx, &my);
+							c = canvasGet(state.canvasArr, mx, my);
+							if (c && !c->isSel) {
+								canvasAdd(state.canvasSel, c);
+								c->isSel = 1;
+							}
 							break;
 						case SDLK_d:
+							SDL_GetMouseState(&mx, &my);
+							c = canvasGet(state.canvasArr, mx, my);
+							if (c && c->isSel) {
+								canvasRem(state.canvasSel, c);
+								c->isSel = 0;
+							}
 							break;
 						default:
 							break;
