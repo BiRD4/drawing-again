@@ -73,10 +73,15 @@ struct {
 			int accumStep;
 		} panZoom;
 		struct {
-			int moveX;
-			int moveY;
-			int resizeX;
-			int resizeY;
+			int setX;
+			int setY;
+			int setW;
+			int setH;
+
+			int *offX;
+			int *offY;
+			int *offW;
+			int *offH;
 		} canvasTransform;
 		struct {
 			int x1;
@@ -93,7 +98,7 @@ struct {
 	{0, 0, 16},
 	S_EASEL, E_EDIT, C_PIXEL,
 	0,
-	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0}},
+	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0}},
 	NULL, NULL
 };
 
@@ -341,10 +346,10 @@ int setDrag(enum ActionDrag action)
 			}
 			break;
 		case D_CANVASTRANSFORM:
-			state.drag.canvasTransform.moveX = 0;
-			state.drag.canvasTransform.moveY = 0;
-			state.drag.canvasTransform.resizeX = 0;
-			state.drag.canvasTransform.resizeY = 0;
+			state.drag.canvasTransform.setX = 0;
+			state.drag.canvasTransform.setY = 0;
+			state.drag.canvasTransform.setW = 0;
+			state.drag.canvasTransform.setH = 0;
 			break;
 		case D_DRAWPIXEL:
 			break;
