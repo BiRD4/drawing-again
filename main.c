@@ -38,6 +38,7 @@ struct canvasArray {
 struct {
 
 	int quit;
+	int warp;
 	int debug;
 	int space;
 
@@ -91,7 +92,7 @@ struct {
 	struct canvasArray *canvasSel;
 
 } state = {
-	0, 0, 0,
+	0, 0, 0, 0,
 	{0, 0, 16},
 	S_EASEL, E_EDIT, C_PIXEL,
 	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0}},
@@ -327,12 +328,14 @@ int setDrag(enum ActionDrag action)
 		case D_PANZOOM:
 			SDL_CaptureMouse(SDL_FALSE);
 			SDL_SetRelativeMouseMode(SDL_FALSE);
-			if (state.space)
+			if (state.space) {
+				state.warp = 1;
 				SDL_WarpMouseInWindow(
 						win,
 						state.drag.panZoom.initX,
 						state.drag.panZoom.initY
 						);
+			}
 			break;
 		case D_CANVASNEW:
 			{
@@ -565,6 +568,7 @@ int setSpace(int space)
 				break;
 			case D_PANZOOM:
 				SDL_SetRelativeMouseMode(SDL_FALSE);
+				state.warp = 1;
 				SDL_WarpMouseInWindow(
 						win,
 						state.drag.panZoom.initX,
@@ -1205,7 +1209,10 @@ int main(int argc, char **argv)
 		tickCurr = SDL_GetTicks();
 		if (SDL_TICKS_PASSED(tickCurr, tickNext)) {
 			tickNext = tickCurr + delta;
-			frameDo();
+			if (state.warp)
+				state.warp = 0;
+			else
+				frameDo();
 		}
 		SDL_Event e;
 		eventDo(&e);
