@@ -585,6 +585,16 @@ int frameDo() {
 		SDL_GetRendererOutputSize(ren, &rw, &rh);
 		SDL_RenderDrawLine(ren, 0, state.easel.y, rw, state.easel.y);
 		SDL_RenderDrawLine(ren, state.easel.x, 0, state.easel.x, rh);
+
+		MAP_CANVASES(state.canvasArr, i, c) {
+			SDL_Rect surface = {
+				TO_COORD_SCREEN_X(c->x),
+				TO_COORD_SCREEN_Y(c->y),
+				state.easel.s * c->surf->w,
+				state.easel.s * c->surf->h
+			};
+			SDL_RenderDrawRect(ren, &surface);
+		}
 	}
 
 	SDL_RenderPresent(ren);
