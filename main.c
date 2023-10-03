@@ -38,8 +38,8 @@ struct canvasArray {
 struct {
 
 	int quit;
-
 	int debug;
+	int space;
 
 	struct {
 		int x;
@@ -51,8 +51,6 @@ struct {
 	enum Scope {S_EASEL, S_CANVAS} scope;
 	enum modeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
 	enum modeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
-
-	int space;
 
 	struct {
 		enum ActionDrag {
@@ -93,11 +91,9 @@ struct {
 	struct canvasArray *canvasSel;
 
 } state = {
-	0,
-	0,
+	0, 0, 0,
 	{0, 0, 16},
 	S_EASEL, E_EDIT, C_PIXEL,
-	0,
 	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0}},
 	NULL, NULL
 };
