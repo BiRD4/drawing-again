@@ -146,8 +146,10 @@ init_cleanup:
 }
 
 void quit() {
-	MAP_CANVASES(state.canvasArr, i, c) {
-		canvasDel(c);
+	if (state.canvasArr->size != 0) {
+		MAP_CANVASES(state.canvasArr, i, c) {
+			canvasDel(c);
+		}
 	}
 	free(state.canvasArr);
 	free(state.canvasSel);
@@ -304,8 +306,10 @@ struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 	newArray->array = calloc(newArray->size, sizeof (struct canvas *));
 	if (!newArray->array)
 		return NULL;
-	MAP_CANVASES(ca, i, c) {
-		newArray->array[i] = c;
+	if (ca->size != 0) {
+		MAP_CANVASES(ca, i, c) {
+			newArray->array[i] = c;
+		}
 	}
 
 	return newArray;
@@ -598,24 +602,26 @@ int frameDo() {
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(ren);
 
-	MAP_CANVASES(state.canvasArr, i, c) {
-		if (c->isSel)
-			SDL_SetRenderDrawColor(
-					ren, 255, 255, 255,
-					SDL_ALPHA_OPAQUE
-					);
-		else
-			SDL_SetRenderDrawColor(
-					ren, 127, 127, 127,
-					SDL_ALPHA_OPAQUE
-					);
-		SDL_Rect border = {
-			TO_COORD_SCREEN_X(c->x) - 1,
-			TO_COORD_SCREEN_Y(c->y) - 1,
-			state.easel.s * c->w + 2,
-			state.easel.s * c->h + 2
-		};
-		SDL_RenderDrawRect(ren, &border);
+	if (state.canvasArr->size != 0) {
+		MAP_CANVASES(state.canvasArr, i, c) {
+			if (c->isSel)
+				SDL_SetRenderDrawColor(
+						ren, 255, 255, 255,
+						SDL_ALPHA_OPAQUE
+						);
+			else
+				SDL_SetRenderDrawColor(
+						ren, 127, 127, 127,
+						SDL_ALPHA_OPAQUE
+						);
+			SDL_Rect border = {
+				TO_COORD_SCREEN_X(c->x) - 1,
+				TO_COORD_SCREEN_Y(c->y) - 1,
+				state.easel.s * c->w + 2,
+				state.easel.s * c->h + 2
+			};
+			SDL_RenderDrawRect(ren, &border);
+		}
 	}
 
 	int cursorX;
@@ -646,14 +652,16 @@ int frameDo() {
 		SDL_RenderDrawLine(ren, 0, state.easel.y, rw, state.easel.y);
 		SDL_RenderDrawLine(ren, state.easel.x, 0, state.easel.x, rh);
 
-		MAP_CANVASES(state.canvasArr, i, c) {
-			SDL_Rect surface = {
-				TO_COORD_SCREEN_X(c->x),
-				TO_COORD_SCREEN_Y(c->y),
-				state.easel.s * c->surf->w,
-				state.easel.s * c->surf->h
-			};
-			SDL_RenderDrawRect(ren, &surface);
+		if (state.canvasArr->size != 0) {
+			MAP_CANVASES(state.canvasArr, i, c) {
+				SDL_Rect surface = {
+					TO_COORD_SCREEN_X(c->x),
+					TO_COORD_SCREEN_Y(c->y),
+					state.easel.s * c->surf->w,
+					state.easel.s * c->surf->h
+				};
+				SDL_RenderDrawRect(ren, &surface);
+			}
 		}
 	}
 
