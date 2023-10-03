@@ -13,6 +13,14 @@
 #define TO_COORD_SCREEN_X(c) (c * state.easel.s + state.easel.x)
 #define TO_COORD_SCREEN_Y(c) (c * state.easel.s + state.easel.y)
 
+#define MAP_CANVASES(ca, i, c)           \
+        struct canvas *c = ca->array[0]; \
+        for (                            \
+                int i = 0;               \
+                i < ca->size;            \
+                ++i, c = ca->array[i]    \
+                )
+
 struct canvas {
 	int isSel;
 	int x;
