@@ -141,8 +141,9 @@ init_cleanup:
 }
 
 void quit() {
-	for (int i = 0; i < state.canvasArr->size; ++i)
-		canvasDel(state.canvasArr->array[i]);
+	MAP_CANVASES(state.canvasArr, i, c) {
+		canvasDel(c);
+	}
 	free(state.canvasArr);
 	free(state.canvasSel);
 
@@ -195,8 +196,8 @@ int canvasRem(struct canvasArray *ca, struct canvas *c)
 	if (!c)
 		goto canvasRem_cleanup;
 
-	for (int i = 0; i < ca->size; ++i) {
-		if (ca->array[i] == c) {
+	MAP_CANVASES(ca, i, ci) {
+		if (ci == c) {
 			struct canvasArray newArray = {ca->size - 1, NULL};
 			newArray.array = calloc(
 					newArray.size,
@@ -537,8 +538,7 @@ int frameDo() {
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(ren);
 
-	for (int i = 0; i < state.canvasArr->size; ++i) {
-		struct canvas *c = state.canvasArr->array[i];
+	MAP_CANVASES(state.canvasArr, i, c) {
 		if (c->isSel)
 			SDL_SetRenderDrawColor(
 					ren, 255, 255, 255,
