@@ -405,10 +405,10 @@ int setDrag(enum ActionDrag action)
 						TO_COORD_EASEL_Y(my),
 						1, 1
 						);
-				if (c) {
-					canvasAdd(state.canvasArr, c);
-					canvasAdd(state.canvasSel, c);
-				}
+				if (!c)
+					goto setDrag_cleanup;
+				canvasAdd(state.canvasArr, c);
+				canvasAdd(state.canvasSel, c);
 				break;
 			}
 		case D_CANVASTRANSFORM:
