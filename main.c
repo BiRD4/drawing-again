@@ -329,7 +329,15 @@ int setDrag(enum ActionDrag action)
 						);
 			break;
 		case D_CANVASNEW:
-			// TODO
+			{
+				struct canvasArray *oldArray =
+					canvasArrayCopy(state.canvasSel);
+				MAP_CANVASES(oldArray, i, cFix) {
+					canvasFix(cFix);
+					canvasRem(state.canvasSel, cFix);
+				}
+				canvasArrayFree(oldArray);
+			}
 			break;
 		case D_CANVASTRANSFORM:
 			state.drag.canvasTransform.moveX = 0;
@@ -368,7 +376,18 @@ int setDrag(enum ActionDrag action)
 			}
 		case D_CANVASNEW:
 			{
-				// TODO
+				int mx, my;
+				struct canvas *c;
+				SDL_GetMouseState(&mx, &my);
+				c = canvasNew(
+						TO_COORD_EASEL_X(mx),
+						TO_COORD_EASEL_Y(my),
+						1, 1
+					     );
+				if (c) {
+					canvasAdd(state.canvasArr, c);
+					canvasAdd(state.canvasSel, c);
+				}
 				break;
 			}
 		case D_CANVASTRANSFORM:
@@ -620,8 +639,28 @@ int eventKeyDown(SDL_Event *e)
 				case E_EDIT:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							setDrag(D_CANVASNEW);
 							break;
 						case SDLK_d:
+							if (state.canvasSel->size == 0) {
+								int mx, my;
+								SDL_GetMouseState(&mx, &my);
+								struct canvas *c = canvasGet(
+									state.canvasArr,
+									TO_COORD_EASEL_X(mx),
+									TO_COORD_EASEL_Y(my)
+									);
+								canvasDel(c);
+							} else {
+								struct canvasArray *arrayDel =
+									canvasArrayCopy(
+										state.canvasSel
+										);
+								MAP_CANVASES(arrayDel, i, c) {
+									canvasDel(c);
+								}
+								canvasArrayFree(arrayDel);
+							}
 							break;
 						default:
 							break;
@@ -769,6 +808,7 @@ int eventKeyUp(SDL_Event *e)
 				case E_EDIT:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							setDrag(D_NONE);
 							break;
 						default:
 							break;
@@ -889,7 +929,17 @@ int eventMouseMotion(SDL_Event *e)
 				break;
 			}
 		case D_CANVASNEW:
-			break;
+			{
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				MAP_CANVASES(state.canvasSel, i, c) {
+					canvasMove(c, c->x, c->y,
+						TO_COORD_EASEL_X(mx) - c->x,
+						TO_COORD_EASEL_Y(my) - c->y
+						);
+				}
+				break;
+			}
 		case D_CANVASTRANSFORM:
 			break;
 		case D_DRAWPIXEL:
