@@ -1273,6 +1273,9 @@ int main(int argc, char **argv)
 	if (!init())
 		goto main_cleanup;
 
+	struct canvas *a = canvasNew(8, 8, 16, 16);
+	canvasAdd(state.canvasArr, a);
+
 	Uint32 tickCurr;
 	Uint32 tickNext = 0;
 	int delta = 1000 / FPS;
