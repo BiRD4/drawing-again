@@ -46,6 +46,11 @@ struct {
 		int x;
 		int y;
 		int s;
+
+		int minX;
+		int minY;
+		int maxX;
+		int maxY;
 	} easel;
 
 	// TODO add S_PICK and C_SELECT
@@ -93,7 +98,7 @@ struct {
 
 } state = {
 	0, 0, 0, 0,
-	{0, 0, 16},
+	{0, 0, 16, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL,
 	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0}},
 	NULL, NULL
