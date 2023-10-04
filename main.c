@@ -234,6 +234,9 @@ int canvasAdd(struct canvasArray *ca, struct canvas *c)
 	ca->size = newArray.size;
 	ca->array = newArray.array;
 
+	if (ca == state.canvasArr)
+		easelBoundsFix();
+
 	flag = 1;
 canvasAdd_cleanup:
 	return flag;
@@ -263,6 +266,9 @@ int canvasRem(struct canvasArray *ca, struct canvas *c)
 			ca->array = newArray.array;
 		}
 	}
+
+	if (ca == state.canvasArr)
+		easelBoundsFix();
 
 	flag = 1;
 canvasRem_cleanup:
@@ -308,6 +314,13 @@ int canvasMove(struct canvas *c, int x, int y, int w, int h)
 	c->y = y;
 	c->w = (w > 0) ? w : 1;
 	c->h = (h > 0) ? h : 1;
+
+	MAP_CANVASES(state.canvasArr, i, ci) {
+		if (c == ci) {
+			easelBoundsFix();
+			break;
+		}
+	}
 
 	flag = 1;
 canvasMove_cleanup:
@@ -1149,6 +1162,7 @@ int eventMouseMotion(SDL_Event *e)
 						* state.drag.panZoom.offY
 						/ state.drag.panZoom.initScale
 						);
+				easelFix();
 				break;
 			}
 		case D_CANVASNEW:
