@@ -160,6 +160,46 @@ void quit() {
 	SDL_Quit();
 }
 
+void easelBoundsFix()
+{
+	if (state.canvasArr->size != 0) {
+		struct canvas *cInit = state.canvasArr->array[0];
+		state.easel.minX = cInit->x;
+		state.easel.minY = cInit->y;
+		state.easel.maxX = cInit->x + cInit->w;
+		state.easel.maxY = cInit->y + cInit->h;
+		MAP_CANVASES(state.canvasArr, i, c) {
+			if (c->x < state.easel.minX)
+				state.easel.minX = c->x;
+			if (c->y < state.easel.minY)
+				state.easel.minY = c->y;
+			if (c->x + c->w > state.easel.maxX)
+				state.easel.maxX = c->x + c->w;
+			if (c->y + c->h > state.easel.maxY)
+				state.easel.maxY = c->y + c->h;
+		}
+	} else {
+		state.easel.minX = 0;
+		state.easel.minY = 0;
+		state.easel.maxX = 0;
+		state.easel.maxY = 0;
+	}
+}
+
+void easelFix()
+{
+	int rw, rh;
+	SDL_GetRendererOutputSize(ren, &rw, &rh);
+	if (rw < TO_COORD_SCREEN_X(state.easel.minX))
+		state.easel.x += rw - TO_COORD_SCREEN_X(state.easel.minX);
+	if (rh < TO_COORD_SCREEN_Y(state.easel.minY))
+		state.easel.y += rh - TO_COORD_SCREEN_Y(state.easel.minY);
+	if ( 0 > TO_COORD_SCREEN_X(state.easel.maxX))
+		state.easel.x +=  0 - TO_COORD_SCREEN_X(state.easel.maxX);
+	if ( 0 > TO_COORD_SCREEN_Y(state.easel.maxY))
+		state.easel.y +=  0 - TO_COORD_SCREEN_Y(state.easel.maxY);
+}
+
 struct canvas *canvasNew(int x, int y, int w, int h)
 {
 	struct canvas *c = malloc(sizeof (struct canvas));
