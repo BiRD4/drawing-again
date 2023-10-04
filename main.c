@@ -383,6 +383,8 @@ int setDrag(enum ActionDrag action)
 			break;
 		case D_PANZOOM:
 			{
+				if (!SDL_GetMouseFocus())
+					goto setDrag_cleanupNoError;
 				int mx, my;
 				SDL_GetMouseState(&mx, &my);
 				state.drag.panZoom.offX = state.easel.x - mx;
