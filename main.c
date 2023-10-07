@@ -99,10 +99,20 @@ struct {
 			int *offH;
 		} canvasTransform;
 		struct {
-			int x1;
-			int y1;
+			int initX;
+			int initY;
+			enum Key {KEY_F, KEY_D, KEY_S, KEY_A} key;
+			SDL_Color color;
+			struct pixelArray *pixels;
 		} drawLine;
 	} drag;
+
+	struct {
+		SDL_Color f;
+		SDL_Color d;
+		SDL_Color s;
+		SDL_Color a;
+	} colors;
 
 	struct canvasArray *canvasArr;
 	struct canvasArray *canvasSel;
@@ -111,7 +121,8 @@ struct {
 	0, 0, 0, 0,
 	{0, 0, 16, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL,
-	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0}},
+	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0, KEY_F, {0, 0, 0, 0}, NULL}},
+	{{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 255, 255}},
 	NULL, NULL
 };
 
