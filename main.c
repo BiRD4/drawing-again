@@ -729,8 +729,10 @@ int frameDo() {
 		SDL_Rect bounds = {
 			TO_COORD_SCREEN_X(state.easel.minX),
 			TO_COORD_SCREEN_Y(state.easel.minY),
-			TO_COORD_SCREEN_X(state.easel.maxX) - TO_COORD_SCREEN_X(state.easel.minX),
-			TO_COORD_SCREEN_Y(state.easel.maxY) - TO_COORD_SCREEN_Y(state.easel.minY)
+			TO_COORD_SCREEN_X(state.easel.maxX)
+				- TO_COORD_SCREEN_X(state.easel.minX),
+			TO_COORD_SCREEN_Y(state.easel.maxY)
+				- TO_COORD_SCREEN_Y(state.easel.minY)
 		};
 		SDL_RenderDrawRect(ren, &bounds);
 	}
