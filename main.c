@@ -681,7 +681,10 @@ int setDrag(enum ActionDrag action)
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
-			// TODO
+			pixelArrayDo(
+					state.drag.drawLine.pixels,
+					state.drag.drawLine.color
+					);
 			break;
 		default:
 			break;
@@ -777,7 +780,10 @@ int setDrag(enum ActionDrag action)
 			}
 		case D_DRAWLINE:
 			{
-				// TODO
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				state.drag.drawLine.initX = TO_COORD_EASEL_X(mx);
+				state.drag.drawLine.initY = TO_COORD_EASEL_Y(my);
 				break;
 			}
 		default:
@@ -1236,12 +1242,28 @@ int eventKeyDown(SDL_Event *e)
 				case C_LINE:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							state.drag.drawLine.key = KEY_F;
+							state.drag.drawLine.color =
+								state.colors.f;
+							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_d:
+							state.drag.drawLine.key = KEY_D;
+							state.drag.drawLine.color =
+								state.colors.d;
+							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_s:
+							state.drag.drawLine.key = KEY_S;
+							state.drag.drawLine.color =
+								state.colors.s;
+							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_a:
+							state.drag.drawLine.key = KEY_A;
+							state.drag.drawLine.color =
+								state.colors.a;
+							setDrag(D_DRAWLINE);
 							break;
 						default:
 							break;
@@ -1358,9 +1380,21 @@ int eventKeyUp(SDL_Event *e)
 				case C_LINE:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							if (state.drag.drawLine.key == KEY_F) {
+								setDrag(D_NONE);
+							}
+							break;
 						case SDLK_d:
+							if (state.drag.drawLine.key == KEY_D)
+								setDrag(D_NONE);
+							break;
 						case SDLK_s:
+							if (state.drag.drawLine.key == KEY_S)
+								setDrag(D_NONE);
+							break;
 						case SDLK_a:
+							if (state.drag.drawLine.key == KEY_A)
+								setDrag(D_NONE);
 							break;
 						default:
 							break;
@@ -1383,6 +1417,8 @@ eventKeyUp_cleanup:
 
 int eventMouseMotion(SDL_Event *e)
 {
+	// TODO create event for cursor moving on easel scale
+	// and separate out corresponding drag actions into new event handler function
 	int flag = 0;
 
 	switch (state.drag.action) {
@@ -1471,6 +1507,14 @@ int eventMouseMotion(SDL_Event *e)
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
+			pixelArrayReset(state.drag.drawLine.pixels);
+			pixelArrayLine(
+				state.drag.drawLine.pixels,
+				state.drag.drawLine.initX,
+				state.drag.drawLine.initY,
+				TO_COORD_EASEL_X(e->motion.x),
+				TO_COORD_EASEL_Y(e->motion.y)
+				);
 			break;
 		default:
 			break;
