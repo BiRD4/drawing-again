@@ -138,6 +138,15 @@ int ceiling(float f)
 		return i + 1;
 }
 
+int round(double f)
+{
+	int i = (int) f;
+	if (f - i < 0.5)
+		return i;
+	else
+		return i + 1;
+}
+
 int init() {
 	int flag = 0;
 
@@ -476,6 +485,116 @@ int pixelArrayAppend(struct pixelArray *pa, struct pixel pix)
 
 	flag = 1;
 pixelArrayAppend_cleanup:
+	return flag;
+}
+
+int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2)
+{
+	int flag = 0;
+	if (!pa)
+		goto pixelArrayLine_cleanup;
+
+	int dx, dy;
+	if (inX1 <= inX2)
+		dx = inX2 - inX1;
+	else
+		dx = inX1 - inX2;
+	if (inY1 <= inY2)
+		dy = inY2 - inY1;
+	else
+		dy = inY1 - inY2;
+
+	int i1, i2, di;
+	int j1, j2, dj;
+	int swap, flipX, flipY;
+	if (dx >= dy) {
+		swap = 0;
+		if (inX1 <= inX2) {
+			flipX = 0;
+			i1 = inX1;
+			i2 = inX2;
+		} else {
+			flipX = 1;
+			i1 = inX2;
+			i2 = inX1;
+		}
+		if (inY1 <= inY2) {
+			flipY = 0;
+			j1 = inY1;
+			j2 = inY2;
+		} else {
+			flipY = 1;
+			j1 = inY2;
+			j2 = inY1;
+		}
+	} else {
+		swap = 1;
+		if (inX1 <= inX2) {
+			flipX = 0;
+			j1 = inX1;
+			j2 = inX2;
+		} else {
+			flipX = 1;
+			j1 = inX2;
+			j2 = inX1;
+		}
+		if (inY1 <= inY2) {
+			flipY = 0;
+			i1 = inY1;
+			i2 = inY2;
+		} else {
+			flipY = 1;
+			i1 = inY2;
+			i2 = inY1;
+		}
+	}
+	di = i2 - i1;
+	dj = j2 - j1;
+
+	for (int i = 0; i <= di; ++i) {
+		int j = round(i * dj / (double) di);
+		struct pixel pix;
+		if (!swap) {
+			if (!flipX) {
+				pix.x = i1 + i;
+			} else {
+				pix.x = i2 - i;
+			}
+			if (!flipY) {
+				pix.y = j1 + j;
+			} else {
+				pix.y = j2 - j;
+			}
+		} else {
+			if (!flipX) {
+				pix.x = j1 + j;
+			} else {
+				pix.x = j2 - j;
+			}
+			if (!flipY) {
+				pix.y = i1 + i;
+			} else {
+				pix.y = i2 - i;
+			}
+		}
+		pixelArrayAppend(pa, pix);
+	}
+
+	flag = 1;
+pixelArrayLine_cleanup:
+	return flag;
+}
+
+int pixelArrayReset(struct pixelArray *pa)
+{
+	int flag = 0;
+	if (!pa)
+		goto pixelArrayReset_cleanup;
+
+	pa->size = 0;
+
+	flag = 1;
+pixelArrayReset_cleanup:
 	return flag;
 }
 
