@@ -214,7 +214,13 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			0, w, h, 32,
 			SDL_PIXELFORMAT_ARGB32
 			);
+	if (!c->surf)
+		goto canvasNew_cleanup;
 	return c;
+
+canvasNew_cleanup:
+		free(c);
+		return NULL;
 }
 
 int canvasAdd(struct canvasArray *ca, struct canvas *c)
@@ -360,7 +366,7 @@ struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 	newArray->size = ca->size;
 	newArray->array = calloc(newArray->size, sizeof (struct canvas *));
 	if (!newArray->array)
-		return NULL;
+		goto canvasArrayCopy_cleanup;
 	if (ca->size != 0) {
 		MAP_CANVASES(ca, i, c) {
 			newArray->array[i] = c;
@@ -368,12 +374,24 @@ struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 	}
 
 	return newArray;
+
+canvasArrayCopy_cleanup:
+	free(newArray);
+	return NULL;
 }
 
-void canvasArrayFree(struct canvasArray *ca)
+int canvasArrayFree(struct canvasArray *ca)
 {
+	int flag = 0;
+	if (!ca)
+		goto canvasArrayFree_cleanup;
+
 	free(ca->array);
 	free(ca);
+
+	flag = 1;
+canvasArrayFree_cleanup:
+	return flag;
 }
 
 int setDrag(enum ActionDrag action)
