@@ -160,6 +160,11 @@ int init() {
 	if (ren == NULL)
 		goto init_cleanup;
 
+	state.drag.drawLine.pixels = malloc(sizeof (struct pixelArray));
+	state.drag.drawLine.pixels->memlen = 0;
+	state.drag.drawLine.pixels->size = 0;
+	state.drag.drawLine.pixels->array = NULL;
+
 	state.canvasArr = malloc(sizeof (struct canvasArray));
 	state.canvasSel = malloc(sizeof (struct canvasArray));
 	state.canvasArr->size = 0;
