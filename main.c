@@ -162,10 +162,7 @@ int init() {
 	if (win == NULL)
 		goto init_cleanup;
 
-	ren = SDL_CreateRenderer(
-			win, -1,
-			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE
-			);
+	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 	if (ren == NULL)
 		goto init_cleanup;
 
@@ -251,7 +248,7 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->h = h;
 	c->tex = SDL_CreateTexture(
 			ren, SDL_PIXELFORMAT_ARGB32,
-			SDL_TEXTUREACCESS_TARGET, w, h
+			SDL_TEXTUREACCESS_STREAMING, w, h
 			);
 	if (!c->tex)
 		goto canvasNew_cleanup;
@@ -383,7 +380,7 @@ int canvasFix(struct canvas *c)
 	if (c->w != tw || c->h != th) {
 		SDL_Texture *newTex = SDL_CreateTexture(
 				ren, SDL_PIXELFORMAT_ARGB32,
-				SDL_TEXTUREACCESS_TARGET, c->w, c->h
+				SDL_TEXTUREACCESS_STREAMING, c->w, c->h
 				);
 		if (!newTex)
 			goto canvasFix_cleanup;
