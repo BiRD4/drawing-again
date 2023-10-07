@@ -66,8 +66,8 @@ struct {
 
 	// TODO add S_PICK and C_SELECT
 	enum Scope {S_EASEL, S_CANVAS} scope;
-	enum modeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
-	enum modeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
+	enum ModeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
+	enum ModeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
 
 	struct {
 		enum ActionDrag {
@@ -684,7 +684,7 @@ setScope_cleanup:
 	return flag;
 }
 
-int setModeEasel(enum modeEasel mode)
+int setModeEasel(enum ModeEasel mode)
 {
 	int flag = 0;
 
@@ -697,7 +697,7 @@ setModeEasel_cleanup:
 	return flag;
 }
 
-int setModeCanvas(enum modeCanvas mode)
+int setModeCanvas(enum ModeCanvas mode)
 {
 	int flag = 0;
 
@@ -1284,10 +1284,8 @@ int eventMouseMotion(SDL_Event *e)
 					focusX = state.drag.panZoom.initX;
 					focusY = state.drag.panZoom.initY;
 				} else {
-					int mx, my;
-					SDL_GetMouseState(&mx, &my);
-					focusX = mx;
-					focusY = my;
+					focusX = e->motion.x;
+					focusY = e->motion.y;
 				}
 				state.easel.x = focusX + (
 						state.easel.s
@@ -1304,35 +1302,31 @@ int eventMouseMotion(SDL_Event *e)
 			}
 		case D_CANVASNEW:
 			{
-				int mx, my;
-				SDL_GetMouseState(&mx, &my);
 				MAP_CANVASES(state.canvasSel, i, c) {
 					canvasMove(c, c->x, c->y,
-						TO_COORD_EASEL_X(mx) - c->x,
-						TO_COORD_EASEL_Y(my) - c->y
+						TO_COORD_EASEL_X(e->motion.x) - c->x,
+						TO_COORD_EASEL_Y(e->motion.y) - c->y
 						);
 				}
 				break;
 			}
 		case D_CANVASTRANSFORM:
 			{
-				int mx, my;
-				SDL_GetMouseState(&mx, &my);
 				MAP_CANVASES(state.canvasSel, i, c) {
 					int x = state.drag.canvasTransform.setX
-						? TO_COORD_EASEL_X(mx)
+						? TO_COORD_EASEL_X(e->motion.x)
 						    + state.drag.canvasTransform.offX[i]
 						: c->x;
 					int y = state.drag.canvasTransform.setY
-						? TO_COORD_EASEL_Y(my)
+						? TO_COORD_EASEL_Y(e->motion.y)
 						    + state.drag.canvasTransform.offY[i]
 						: c->y;
 					int w = state.drag.canvasTransform.setW
-						? TO_COORD_EASEL_X(mx) - c->x
+						? TO_COORD_EASEL_X(e->motion.x) - c->x
 						    + state.drag.canvasTransform.offW[i]
 						: c->w;
 					int h = state.drag.canvasTransform.setH
-						? TO_COORD_EASEL_Y(my) - c->y
+						? TO_COORD_EASEL_Y(e->motion.y) - c->y
 						    + state.drag.canvasTransform.offH[i]
 						: c->h;
 					canvasMove(c, x, y, w, h);
