@@ -410,6 +410,88 @@ canvasArrayFree_cleanup:
 	return flag;
 }
 
+struct pixelArray *pixelArrayNew()
+{
+	struct pixelArray *pa = malloc(sizeof (struct pixelArray));
+	if (!pa)
+		return NULL;
+	pa->memlen = 0;
+	pa->size = 0;
+	pa->array = NULL;
+	return pa;
+}
+
+int pixelArrayFree(struct pixelArray *pa)
+{
+	int flag = 0;
+	if (!pa)
+		goto pixelArrayFree_cleanup;
+
+	free(pa->array);
+	free(pa);
+
+	flag = 1;
+pixelArrayFree_cleanup:
+	return flag;
+}
+
+int pixelArrayAppend(struct pixelArray *pa, struct pixel pix)
+{
+	int flag = 0;
+	if (!pa)
+		goto pixelArrayAppend_cleanup;
+
+	if (pa->size * sizeof (struct pixel) == pa->memlen) {
+		if (pa->memlen == 0) {
+			struct pixel *newArray = malloc(sizeof (struct pixel));
+			if (!newArray)
+				goto pixelArrayAppend_cleanup;
+			pa->memlen = sizeof (struct pixel);
+			pa->array = newArray;
+		} else {
+			struct pixel *newArray = realloc(pa->array, 2 * pa->memlen);
+			if (!newArray)
+				goto pixelArrayAppend_cleanup;
+			pa->memlen *= 2;
+			pa->array = newArray;
+		}
+	}
+	pa->array[pa->size++] = pix;
+
+	flag = 1;
+pixelArrayAppend_cleanup:
+	return flag;
+}
+
+int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
+{
+	int flag = 0;
+	if (!pa)
+		goto pixelArrayDo_cleanup;
+
+	SDL_SetRenderDrawColor(ren, c.r, c.g, c.b, c.a);
+
+	struct canvasArray *ca;
+	if (state.canvasSel->size != 0)
+		ca = state.canvasSel;
+	else
+		ca = state.canvasArr;
+
+	for (int i = 0; i < pa->size; ++i) {
+		struct pixel pix = pa->array[i];
+		struct canvas *c = canvasGet(ca, pix.x, pix.y);
+		if (!c)
+			continue;
+		SDL_SetRenderTarget(ren, c->tex);
+		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
+	}
+	SDL_SetRenderTarget(ren, NULL);
+
+	flag = 1;
+pixelArrayDo_cleanup:
+	return flag;
+}
+
 int setDrag(enum ActionDrag action)
 {
 	int flag = 0;
