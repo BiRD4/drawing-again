@@ -30,9 +30,20 @@ struct canvas {
 	SDL_Texture *tex;
 };
 
+struct pixel {
+	int x;
+	int y;
+};
+
 struct canvasArray {
 	int size;
 	struct canvas **array;
+};
+
+struct pixelArray {
+	int memlen;
+	int size;
+	struct pixel *array;
 };
 
 struct {
