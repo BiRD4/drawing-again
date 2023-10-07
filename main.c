@@ -27,7 +27,7 @@ struct canvas {
 	int y;
 	int w;
 	int h;
-	SDL_Texture *tex;
+	SDL_Surface *surf;
 };
 
 struct pixel {
@@ -246,11 +246,11 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->y = y;
 	c->w = w;
 	c->h = h;
-	c->tex = SDL_CreateTexture(
-			ren, SDL_PIXELFORMAT_ARGB32,
-			SDL_TEXTUREACCESS_STREAMING, w, h
+	c->surf = SDL_CreateRGBSurfaceWithFormat(
+			0, w, h, 32,
+			SDL_PIXELFORMAT_ARGB32
 			);
-	if (!c->tex)
+	if (!c->surf)
 		goto canvasNew_cleanup;
 	return c;
 
@@ -325,7 +325,7 @@ int canvasDel(struct canvas *c)
 
 	canvasRem(state.canvasArr, c);
 	canvasRem(state.canvasSel, c);
-	SDL_DestroyTexture(c->tex);
+	SDL_FreeSurface(c->surf);
 	free(c);
 
 	flag = 1;
@@ -375,17 +375,15 @@ int canvasFix(struct canvas *c)
 	if (!c)
 		goto canvasFix_cleanup;
 
-	int tw, th;
-	SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-	if (c->w != tw || c->h != th) {
-		SDL_Texture *newTex = SDL_CreateTexture(
-				ren, SDL_PIXELFORMAT_ARGB32,
-				SDL_TEXTUREACCESS_STREAMING, c->w, c->h
+	if (c->w != c->surf->w || c->h != c->surf->h) {
+		SDL_Surface *newSurf = SDL_CreateRGBSurfaceWithFormat(
+				0, c->w, c->h, 32,
+				SDL_PIXELFORMAT_ARGB32
 				);
-		if (!newTex)
+		if (!newSurf)
 			goto canvasFix_cleanup;
-		SDL_DestroyTexture(c->tex);
-		c->tex = newTex;
+		SDL_FreeSurface(c->surf);
+		c->surf = newSurf;
 	}
 
 	flag = 1;
@@ -968,15 +966,13 @@ int frameDo() {
 
 		if (state.canvasArr->size != 0) {
 			MAP_CANVASES(state.canvasArr, i, c) {
-				int tw, th;
-				SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-				SDL_Rect texture = {
+				SDL_Rect surface = {
 					TO_COORD_SCREEN_X(c->x),
 					TO_COORD_SCREEN_Y(c->y),
-					state.easel.s * tw,
-					state.easel.s * th
+					state.easel.s * c->surf->w,
+					state.easel.s * c->surf->h
 				};
-				SDL_RenderDrawRect(ren, &texture);
+				SDL_RenderDrawRect(ren, &surface);
 			}
 		}
 
