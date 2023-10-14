@@ -28,6 +28,7 @@ struct canvas {
 	int w;
 	int h;
 	SDL_Surface *surf;
+	SDL_Renderer *ren;
 };
 
 struct pixel {
@@ -162,7 +163,7 @@ int init() {
 	if (win == NULL)
 		goto init_cleanup;
 
-	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE);
 	if (ren == NULL)
 		goto init_cleanup;
 
@@ -252,6 +253,9 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			);
 	if (!c->surf)
 		goto canvasNew_cleanup;
+	c->ren = SDL_CreateSoftwareRenderer(c->surf);
+	if (!c->ren)
+		goto canvasNew_cleanup;
 	return c;
 
 canvasNew_cleanup:
@@ -326,6 +330,7 @@ int canvasDel(struct canvas *c)
 	canvasRem(state.canvasArr, c);
 	canvasRem(state.canvasSel, c);
 	SDL_FreeSurface(c->surf);
+	SDL_DestroyRenderer(c->ren);
 	free(c);
 
 	flag = 1;
@@ -382,8 +387,13 @@ int canvasFix(struct canvas *c)
 				);
 		if (!newSurf)
 			goto canvasFix_cleanup;
+		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
+		if (!newRen)
+			goto canvasFix_cleanup;
 		SDL_FreeSurface(c->surf);
+		SDL_DestroyRenderer(c->ren);
 		c->surf = newSurf;
+		c->ren = newRen;
 	}
 
 	flag = 1;
@@ -593,13 +603,13 @@ pixelArrayReset_cleanup:
 	return flag;
 }
 
-int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
+int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 {
 	int flag = 0;
 	if (!pa)
 		goto pixelArrayDo_cleanup;
 
-	SDL_SetRenderDrawColor(ren, c.r, c.g, c.b, c.a);
+	SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 
 	struct canvasArray *ca;
 	if (state.canvasSel->size != 0)
@@ -612,10 +622,8 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
 		struct canvas *c = canvasGet(ca, pix.x, pix.y);
 		if (!c)
 			continue;
-		SDL_SetRenderTarget(ren, c->tex);
-		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
+		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
 	}
-	SDL_SetRenderTarget(ren, NULL);
 
 	flag = 1;
 pixelArrayDo_cleanup:
@@ -916,16 +924,17 @@ int frameDo() {
 
 	if (state.canvasArr->size != 0) {
 		MAP_CANVASES(state.canvasArr, i, c) {
-			if (c->isSel)
+			if (c->isSel) {
 				SDL_SetRenderDrawColor(
 						ren, 255, 255, 255,
 						SDL_ALPHA_OPAQUE
 						);
-			else
+			} else {
 				SDL_SetRenderDrawColor(
 						ren, 127, 127, 127,
 						SDL_ALPHA_OPAQUE
 						);
+			}
 			SDL_Rect border = {
 				TO_COORD_SCREEN_X(c->x) - 1,
 				TO_COORD_SCREEN_Y(c->y) - 1,
