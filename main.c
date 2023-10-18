@@ -615,8 +615,6 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 	if (!pa)
 		goto pixelArrayDo_cleanup;
 
-	SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
-
 	struct canvasArray *ca;
 	if (state.canvasSel->size != 0)
 		ca = state.canvasSel;
@@ -628,6 +626,7 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 		struct canvas *c = canvasGet(ca, pix.x, pix.y);
 		if (!c)
 			continue;
+		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
 	}
 
