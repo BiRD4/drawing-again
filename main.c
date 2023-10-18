@@ -1181,18 +1181,6 @@ int eventKeyDown(SDL_Event *e)
 							break;
 						case SDLK_s:
 							{
-								if (state.canvasArr->size != 0) {
-									MAP_CANVASES(state.canvasArr, i, c) {
-										if (!c->isSel) {
-											canvasAdd(state.canvasSel, c);
-											c->isSel = 1;
-										}
-									}
-								}
-								break;
-							}
-						case SDLK_a:
-							{
 								if (state.canvasSel->size != 0) {
 									struct canvasArray *oldArray =
 										canvasArrayCopy(state.canvasSel);
@@ -1201,6 +1189,18 @@ int eventKeyDown(SDL_Event *e)
 										c->isSel = 0;
 									}
 									canvasArrayFree(oldArray);
+								}
+								break;
+							}
+						case SDLK_a:
+							{
+								if (state.canvasArr->size != 0) {
+									MAP_CANVASES(state.canvasArr, i, c) {
+										if (!c->isSel) {
+											canvasAdd(state.canvasSel, c);
+											c->isSel = 1;
+										}
+									}
 								}
 								break;
 							}
