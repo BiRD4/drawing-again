@@ -792,6 +792,7 @@ int setDrag(enum ActionDrag action)
 				SDL_GetMouseState(&mx, &my);
 				state.drag.drawLine.initX = TO_COORD_EASEL_X(mx);
 				state.drag.drawLine.initY = TO_COORD_EASEL_Y(my);
+				pixelArrayReset(state.drag.drawLine.pixels);
 				break;
 			}
 		default:
