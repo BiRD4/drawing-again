@@ -31,8 +31,7 @@ struct canvas {
 	int y;
 	int w;
 	int h;
-	SDL_Surface *surf;
-	SDL_Renderer *ren;
+	SDL_Texture *tex;
 };
 
 struct pixel {
@@ -253,11 +252,11 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->y = y;
 	c->w = w;
 	c->h = h;
-	c->surf = SDL_CreateRGBSurfaceWithFormat(
-			0, w, h, 32,
-			SDL_PIXELFORMAT_ARGB32
+	c->tex = SDL_CreateTexture(
+			ren, SDL_PIXELFORMAT_ARGB32,
+			SDL_TEXTUREACCESS_STREAMING, w, h
 			);
-	if (!c->surf)
+	if (!c->tex)
 		goto canvasNew_cleanup;
 	c->ren = SDL_CreateSoftwareRenderer(c->surf);
 	if (!c->ren)
@@ -335,8 +334,7 @@ int canvasDel(struct canvas *c)
 
 	canvasRem(state.canvasArr, c);
 	canvasRem(state.canvasSel, c);
-	SDL_FreeSurface(c->surf);
-	SDL_DestroyRenderer(c->ren);
+	SDL_DestroyTexture(c->tex);
 	free(c);
 
 	flag = 1;
@@ -386,20 +384,17 @@ int canvasFix(struct canvas *c)
 	if (!c)
 		goto canvasFix_cleanup;
 
-	if (c->w != c->surf->w || c->h != c->surf->h) {
-		SDL_Surface *newSurf = SDL_CreateRGBSurfaceWithFormat(
-				0, c->w, c->h, 32,
-				SDL_PIXELFORMAT_ARGB32
+	int tw, th;
+	SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+	if (c->w != tw || c->h != th) {
+		SDL_Texture *newTex = SDL_CreateTexture(
+				ren, SDL_PIXELFORMAT_ARGB32,
+				SDL_TEXTUREACCESS_STREAMING, c->w, c->h
 				);
-		if (!newSurf)
+		if (!newTex)
 			goto canvasFix_cleanup;
-		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
-		if (!newRen)
-			goto canvasFix_cleanup;
-		SDL_FreeSurface(c->surf);
-		SDL_DestroyRenderer(c->ren);
-		c->surf = newSurf;
-		c->ren = newRen;
+		SDL_DestroyTexture(c->tex);
+		c->tex = newTex;
 	}
 
 	flag = 1;
@@ -982,13 +977,15 @@ int frameDo()
 
 		if (state.canvasArr->size != 0) {
 			MAP_CANVASES(state.canvasArr, i, c) {
-				SDL_Rect surface = {
+				int tw, th;
+				SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+				SDL_Rect texture = {
 					TO_COORD_SCREEN_X(c->x),
 					TO_COORD_SCREEN_Y(c->y),
-					state.easel.s * c->surf->w,
-					state.easel.s * c->surf->h
+					state.easel.s * tw,
+					state.easel.s * th
 				};
-				SDL_RenderDrawRect(ren, &surface);
+				SDL_RenderDrawRect(ren, &texture);
 			}
 		}
 
