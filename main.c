@@ -1244,24 +1244,28 @@ int eventKeyDown(SDL_Event *e)
 				case C_LINE:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							resetDrag();
 							state.drag.drawLine.key = KEY_F;
 							state.drag.drawLine.color =
 								state.colors.f;
 							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_d:
+							resetDrag();
 							state.drag.drawLine.key = KEY_D;
 							state.drag.drawLine.color =
 								state.colors.d;
 							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_s:
+							resetDrag();
 							state.drag.drawLine.key = KEY_S;
 							state.drag.drawLine.color =
 								state.colors.s;
 							setDrag(D_DRAWLINE);
 							break;
 						case SDLK_a:
+							resetDrag();
 							state.drag.drawLine.key = KEY_A;
 							state.drag.drawLine.color =
 								state.colors.a;
