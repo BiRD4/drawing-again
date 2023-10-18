@@ -995,18 +995,26 @@ int frameDo()
 
 	if (state.canvasArr->size != 0) {
 		MAP_CANVASES(state.canvasArr, i, c) {
+			int tw, th;
+			SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+			SDL_Rect src = {
+				0, 0,
+				(c->w >= tw) ? tw : c->w,
+				(c->h >= th) ? th : c->h
+			};
 			SDL_Rect dst = {
 				TO_COORD_SCREEN_X(c->x),
 				TO_COORD_SCREEN_Y(c->y),
-				state.easel.s * c->w,
-				state.easel.s * c->h
+				state.easel.s * src.w,
+				state.easel.s * src.h
 			};
 			SDL_Rect border = {
 				dst.x - 1, dst.y - 1,
-				dst.w + 2, dst.h + 2
+				state.easel.s * c->w + 2,
+				state.easel.s * c->h + 2
 			};
 
-			SDL_RenderCopy(ren, c->tex, NULL, &dst);
+			SDL_RenderCopy(ren, c->tex, &src, &dst);
 
 			if (c->isSel)
 				SDL_SetRenderDrawColor(
