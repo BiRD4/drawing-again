@@ -261,9 +261,6 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			);
 	if (!c->tex)
 		goto canvasNew_cleanup;
-	c->ren = SDL_CreateSoftwareRenderer(c->surf);
-	if (!c->ren)
-		goto canvasNew_cleanup;
 	return c;
 
 canvasNew_cleanup:
@@ -607,11 +604,13 @@ pixelArrayReset_cleanup:
 	return flag;
 }
 
-int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
+int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
 {
 	int flag = 0;
 	if (!pa)
 		goto pixelArrayDo_cleanup;
+
+	SDL_SetRenderDrawColor(ren, c.r, c.g, c.b, c.a);
 
 	struct canvasArray *ca;
 	if (state.canvasSel->size != 0)
@@ -624,9 +623,10 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 		struct canvas *c = canvasGet(ca, pix.x, pix.y);
 		if (!c)
 			continue;
-		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
-		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
+		SDL_SetRenderTarget(ren, c->tex);
+		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
 	}
+	SDL_SetRenderTarget(ren, NULL);
 
 	flag = 1;
 pixelArrayDo_cleanup:
@@ -947,7 +947,7 @@ int frameDo()
 						ren, 255, 255, 255,
 						SDL_ALPHA_OPAQUE
 						);
-			} else {
+			else
 				SDL_SetRenderDrawColor(
 						ren, 127, 127, 127,
 						SDL_ALPHA_OPAQUE
