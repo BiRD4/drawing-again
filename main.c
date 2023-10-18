@@ -25,6 +25,14 @@
                 ++i, c = ca->array[i]    \
                 )
 
+#define LOCK_SURFACE_IF_MUST(s)   \
+        if (SDL_MUSTLOCK(s))      \
+        SDL_LockSurface(s);
+
+#define UNLOCK_SURFACE_IF_MUST(s) \
+        if (SDL_MUSTLOCK(s))      \
+        SDL_UnlockSurface(s);
+
 struct canvas {
 	int isSel;
 	int x;
@@ -32,6 +40,8 @@ struct canvas {
 	int w;
 	int h;
 	SDL_Texture *tex;
+	SDL_Surface *surf;
+	SDL_Renderer *ren;
 };
 
 struct pixel {
@@ -205,6 +215,21 @@ void quit()
 	SDL_Quit();
 }
 
+int texFix()
+{
+	int flag = 0;
+
+	MAP_CANVASES(state.canvasArr, i, c) {
+		LOCK_SURFACE_IF_MUST(c->surf);
+		SDL_UpdateTexture(c->tex, NULL, c->surf->pixels, c->surf->pitch);
+		UNLOCK_SURFACE_IF_MUST(c->surf);
+	}
+
+	flag = 1;
+texFix_cleanup:
+	return flag;
+}
+
 void easelBoundsFix()
 {
 	if (state.canvasArr->size != 0) {
@@ -261,11 +286,28 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			);
 	if (!c->tex)
 		goto canvasNew_cleanup;
+	c->surf = SDL_CreateRGBSurfaceWithFormat(
+			0, w, h, 32,
+			SDL_PIXELFORMAT_ARGB32
+			);
+	if (!c->surf)
+		goto canvasNew_cleanup_surf;
+	c->ren = SDL_CreateSoftwareRenderer(c->surf);
+	if (!c->ren)
+		goto canvasNew_cleanup_ren;
+	SDL_SetTextureBlendMode(c->tex, SDL_BLENDMODE_BLEND);
+	LOCK_SURFACE_IF_MUST(c->surf);
+	SDL_UpdateTexture(c->tex, NULL, c->surf->pixels, c->surf->pitch);
+	UNLOCK_SURFACE_IF_MUST(c->surf);
 	return c;
 
+canvasNew_cleanup_ren:
+	SDL_FreeSurface(c->surf);
+canvasNew_cleanup_surf:
+	SDL_DestroyTexture(c->tex);
 canvasNew_cleanup:
-		free(c);
-		return NULL;
+	free(c);
+	return NULL;
 }
 
 int canvasAdd(struct canvasArray *ca, struct canvas *c)
@@ -335,6 +377,8 @@ int canvasDel(struct canvas *c)
 	canvasRem(state.canvasArr, c);
 	canvasRem(state.canvasSel, c);
 	SDL_DestroyTexture(c->tex);
+	SDL_DestroyRenderer(c->ren);
+	SDL_FreeSurface(c->surf);
 	free(c);
 
 	flag = 1;
@@ -393,9 +437,29 @@ int canvasFix(struct canvas *c)
 				);
 		if (!newTex)
 			goto canvasFix_cleanup;
+		SDL_SetTextureBlendMode(newTex, SDL_BLENDMODE_BLEND);
 		SDL_DestroyTexture(c->tex);
 		c->tex = newTex;
 	}
+	if (c->w != c->surf->w || c->h != c->surf->h) {
+		SDL_Surface *newSurf = SDL_CreateRGBSurfaceWithFormat(
+				0, c->w, c->h, 32,
+				SDL_PIXELFORMAT_ARGB32
+				);
+		if (!newSurf)
+			goto canvasFix_cleanup;
+		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
+		if (!newRen)
+			goto canvasFix_cleanup;
+		SDL_BlitSurface(c->surf, NULL, newSurf, NULL);
+		SDL_DestroyRenderer(c->ren);
+		SDL_FreeSurface(c->surf);
+		c->surf = newSurf;
+		c->ren = newRen;
+	}
+	LOCK_SURFACE_IF_MUST(c->surf);
+	SDL_UpdateTexture(c->tex, NULL, c->surf->pixels, c->surf->pitch);
+	UNLOCK_SURFACE_IF_MUST(c->surf);
 
 	flag = 1;
 canvasFix_cleanup:
@@ -604,13 +668,13 @@ pixelArrayReset_cleanup:
 	return flag;
 }
 
-int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
+int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 {
 	int flag = 0;
 	if (!pa)
 		goto pixelArrayDo_cleanup;
 
-	SDL_SetRenderDrawColor(ren, c.r, c.g, c.b, c.a);
+	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	struct canvasArray *ca;
 	if (state.canvasSel->size != 0)
@@ -623,8 +687,10 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color c)
 		struct canvas *c = canvasGet(ca, pix.x, pix.y);
 		if (!c)
 			continue;
+		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 		SDL_SetRenderTarget(ren, c->tex);
 		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
+		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
 	}
 	SDL_SetRenderTarget(ren, NULL);
 
@@ -1015,6 +1081,18 @@ int frameDo()
 
 	flag = 1;
 frameDo_cleanup:
+	return flag;
+}
+
+int eventRender(SDL_Event *e)
+{
+	int flag = 0;
+
+	if (!texFix())
+		goto eventRender_cleanup;
+
+	flag = 1;
+eventRender_cleanup:
 	return flag;
 }
 
@@ -1565,6 +1643,11 @@ int eventDo(SDL_Event *e)
 			case SDL_MOUSEWHEEL:
 				break;
 			case SDL_DROPFILE:
+				break;
+			case SDL_RENDER_TARGETS_RESET:
+			case SDL_RENDER_DEVICE_RESET:
+				if (!eventRender(e))
+					goto eventDo_cleanup;
 				break;
 			default:
 				break;
