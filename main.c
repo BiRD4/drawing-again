@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-#define WIN_WIDTH 512
-#define WIN_HEIGHT 512
 #define FPS 60
+#define MAX_ZOOM 64
+#define INIT_SCALE 16
+#define INIT_WIN_WIDTH 512
+#define INIT_WIN_HEIGHT 512
+#define INIT_CANVAS_WIDTH 16
+#define INIT_CANVAS_HEIGHT 16
 
 #define TO_COORD_EASEL_X(c) ((c - state.easel.x) / state.easel.s \
                            - (c - state.easel.x < 0))
@@ -120,7 +124,7 @@ struct {
 
 } state = {
 	0, 0, 0, 0,
-	{0, 0, 16, 0, 0, 0, 0},
+	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL,
 	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0, KEY_F, {0, 0, 0, 0}, NULL}},
 	{{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 255, 255}},
@@ -158,7 +162,7 @@ int init()
 	win = SDL_CreateWindow(
 			"Drawing Program",
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			WIN_WIDTH, WIN_HEIGHT,
+			INIT_WIN_WIDTH, INIT_WIN_HEIGHT,
 			SDL_WINDOW_RESIZABLE
 			);
 	if (win == NULL)
@@ -1427,15 +1431,15 @@ int eventMouseMotion(SDL_Event *e)
 				int focusX;
 				int focusY;
 				if (state.space) {
-					if (!(state.easel.s == 64 && e->motion.yrel < 0)
-					&& (!(state.easel.s ==  1 && e->motion.yrel > 0)))
+					if (!(state.easel.s == MAX_ZOOM && e->motion.yrel < 0)
+					&& (!(state.easel.s == 1        && e->motion.yrel > 0)))
 						state.drag.panZoom.accumStep -= e->motion.yrel;
 					else
 						state.drag.panZoom.accumStep = 0;
 					int accum = state.drag.panZoom.accumStep;
 					if (accum >= 0) {
 						int quota = ceiling(48.0 / state.easel.s);
-						while (accum >= quota && state.easel.s < 64) {
+						while (accum >= quota && state.easel.s < MAX_ZOOM) {
 							accum -= quota;
 							++state.easel.s;
 							quota = ceiling(48.0 / state.easel.s);
@@ -1571,7 +1575,11 @@ int main(int argc, char **argv)
 	if (!init())
 		goto main_cleanup;
 
-	struct canvas *a = canvasNew(8, 8, 16, 16);
+	struct canvas *a = canvasNew(
+			(INIT_WIN_WIDTH / INIT_SCALE - INIT_CANVAS_WIDTH) / 2,
+			(INIT_WIN_HEIGHT / INIT_SCALE - INIT_CANVAS_HEIGHT) / 2,
+			INIT_CANVAS_WIDTH, INIT_CANVAS_HEIGHT
+			);
 	canvasAdd(state.canvasArr, a);
 
 	Uint32 tickCurr;
