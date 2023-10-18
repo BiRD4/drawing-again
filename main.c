@@ -148,7 +148,8 @@ int round(double f)
 		return i + 1;
 }
 
-int init() {
+int init()
+{
 	int flag = 0;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -184,7 +185,8 @@ init_cleanup:
 	return flag;
 }
 
-void quit() {
+void quit()
+{
 	if (state.canvasArr->size != 0) {
 		MAP_CANVASES(state.canvasArr, i, c) {
 			canvasDel(c);
@@ -916,7 +918,8 @@ setSpace_cleanup:
 	return flag;
 }
 
-int frameDo() {
+int frameDo()
+{
 	int flag = 0;
 
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
