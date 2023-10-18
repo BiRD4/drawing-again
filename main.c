@@ -203,6 +203,12 @@ init_cleanup:
 
 void quit()
 {
+	free(state.drag.canvasTransform.offX);
+	free(state.drag.canvasTransform.offY);
+	free(state.drag.canvasTransform.offW);
+	free(state.drag.canvasTransform.offH);
+	free(state.drag.drawLine.pixels);
+
 	if (state.canvasArr->size != 0) {
 		MAP_CANVASES(state.canvasArr, i, c) {
 			canvasDel(c);
@@ -286,6 +292,7 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			);
 	if (!c->tex)
 		goto canvasNew_cleanup;
+	SDL_SetTextureBlendMode(c->tex, SDL_BLENDMODE_BLEND);
 	c->surf = SDL_CreateRGBSurfaceWithFormat(
 			0, w, h, 32,
 			SDL_PIXELFORMAT_ARGB32
@@ -295,10 +302,6 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->ren = SDL_CreateSoftwareRenderer(c->surf);
 	if (!c->ren)
 		goto canvasNew_cleanup_ren;
-	SDL_SetTextureBlendMode(c->tex, SDL_BLENDMODE_BLEND);
-	LOCK_SURFACE_IF_MUST(c->surf);
-	SDL_UpdateTexture(c->tex, NULL, c->surf->pixels, c->surf->pitch);
-	UNLOCK_SURFACE_IF_MUST(c->surf);
 	return c;
 
 canvasNew_cleanup_ren:
@@ -1036,10 +1039,7 @@ int frameDo()
 		cursorX = state.drag.panZoom.initX;
 		cursorY = state.drag.panZoom.initY;
 	} else {
-		int mx, my;
-		SDL_GetMouseState(&mx, &my);
-		cursorX = mx;
-		cursorY = my;
+		SDL_GetMouseState(&cursorX, &cursorY);
 	}
 	SDL_Rect cursor = {
 		TO_COORD_SCREEN_X(TO_COORD_EASEL_X(cursorX)),
