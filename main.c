@@ -191,7 +191,7 @@ int init()
 	int flag = 0;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-		goto init_cleanup;
+		goto cleanup;
 
 	win = SDL_CreateWindow(
 			"Drawing Program",
@@ -200,14 +200,14 @@ int init()
 			SDL_WINDOW_RESIZABLE
 			);
 	if (win == NULL)
-		goto init_cleanup;
+		goto cleanup;
 
 	ren = SDL_CreateRenderer(
 			win, -1,
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE
 			);
 	if (ren == NULL)
-		goto init_cleanup;
+		goto cleanup;
 
 	state.drag.drawPixel.pixels = pixelArrayNew();
 
@@ -224,7 +224,7 @@ int init()
 	state.canvasSel = canvasArrayNew();
 
 	flag = 1;
-init_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -264,7 +264,7 @@ int texFix()
 	}
 
 	flag = 1;
-texFix_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -323,24 +323,24 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			SDL_TEXTUREACCESS_TARGET, w, h
 			);
 	if (!c->tex)
-		goto canvasNew_cleanup;
+		goto cleanup;
 	SDL_SetTextureBlendMode(c->tex, SDL_BLENDMODE_BLEND);
 	c->surf = SDL_CreateRGBSurfaceWithFormat(
 			0, w, h, 32,
 			SDL_PIXELFORMAT_ARGB32
 			);
 	if (!c->surf)
-		goto canvasNew_cleanup_surf;
+		goto cleanup_surf;
 	c->ren = SDL_CreateSoftwareRenderer(c->surf);
 	if (!c->ren)
-		goto canvasNew_cleanup_ren;
+		goto cleanup_ren;
 	return c;
 
-canvasNew_cleanup_ren:
+cleanup_ren:
 	SDL_FreeSurface(c->surf);
-canvasNew_cleanup_surf:
+cleanup_surf:
 	SDL_DestroyTexture(c->tex);
-canvasNew_cleanup:
+cleanup:
 	free(c);
 	return NULL;
 }
@@ -349,7 +349,7 @@ int canvasDel(struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
-		goto canvasDel_cleanup;
+		goto cleanup;
 
 	if (canvasArrayHas(state.canvasArr, c))
 		canvasArrayRem(state.canvasArr, c);
@@ -361,7 +361,7 @@ int canvasDel(struct canvas *c)
 	free(c);
 
 	flag = 1;
-canvasDel_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -369,7 +369,7 @@ int canvasClear(struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
-		goto canvasClear_cleanup;
+		goto cleanup;
 
 	SDL_SetRenderTarget(ren, c->tex);
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
@@ -380,7 +380,7 @@ int canvasClear(struct canvas *c)
 	SDL_RenderClear(c->ren);
 
 	flag = 1;
-canvasClear_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -388,7 +388,7 @@ int canvasMove(struct canvas *c, int x, int y, int w, int h)
 {
 	int flag = 0;
 	if (!c)
-		goto canvasMove_cleanup;
+		goto cleanup;
 
 	c->x = x;
 	c->y = y;
@@ -403,7 +403,7 @@ int canvasMove(struct canvas *c, int x, int y, int w, int h)
 	}
 
 	flag = 1;
-canvasMove_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -411,7 +411,7 @@ int canvasFix(struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
-		goto canvasFix_cleanup;
+		goto cleanup;
 
 	int tw, th;
 	SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
@@ -421,7 +421,7 @@ int canvasFix(struct canvas *c)
 				SDL_TEXTUREACCESS_TARGET, c->w, c->h
 				);
 		if (!newTex)
-			goto canvasFix_cleanup;
+			goto cleanup;
 		SDL_SetTextureBlendMode(newTex, SDL_BLENDMODE_BLEND);
 		SDL_DestroyTexture(c->tex);
 		c->tex = newTex;
@@ -432,10 +432,10 @@ int canvasFix(struct canvas *c)
 				SDL_PIXELFORMAT_ARGB32
 				);
 		if (!newSurf)
-			goto canvasFix_cleanup;
+			goto cleanup;
 		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
 		if (!newRen)
-			goto canvasFix_cleanup;
+			goto cleanup;
 		SDL_BlitSurface(c->surf, NULL, newSurf, NULL);
 		SDL_DestroyRenderer(c->ren);
 		SDL_FreeSurface(c->surf);
@@ -447,7 +447,7 @@ int canvasFix(struct canvas *c)
 	UNLOCK_SURFACE_IF_MUST(c->surf);
 
 	flag = 1;
-canvasFix_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -472,7 +472,7 @@ struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 	newArray->size = ca->size;
 	newArray->array = calloc(newArray->size, sizeof (struct canvas *));
 	if (!newArray->array)
-		goto canvasArrayCopy_cleanup;
+		goto cleanup;
 	if (ca->size != 0) {
 		MAP_CANVASES(ca, i, c) {
 			newArray->array[i] = c;
@@ -481,7 +481,7 @@ struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 
 	return newArray;
 
-canvasArrayCopy_cleanup:
+cleanup:
 	free(newArray);
 	return NULL;
 }
@@ -490,13 +490,13 @@ int canvasArrayFree(struct canvasArray *ca)
 {
 	int flag = 0;
 	if (!ca)
-		goto canvasArrayFree_cleanup;
+		goto cleanup;
 
 	free(ca->array);
 	free(ca);
 
 	flag = 1;
-canvasArrayFree_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -504,7 +504,7 @@ int canvasArrayAppend(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
-		goto canvasArrayAppend_cleanup;
+		goto cleanup;
 
 	struct canvasArray newArray = {ca->size + 1, NULL};
 	newArray.array = realloc(
@@ -512,7 +512,7 @@ int canvasArrayAppend(struct canvasArray *ca, struct canvas *c)
 			newArray.size * sizeof (struct canvas *)
 			);
 	if (!newArray.array)
-		goto canvasArrayAppend_cleanup;
+		goto cleanup;
 	newArray.array[newArray.size - 1] = c;
 	ca->size = newArray.size;
 	ca->array = newArray.array;
@@ -521,7 +521,7 @@ int canvasArrayAppend(struct canvasArray *ca, struct canvas *c)
 		easelBoundsFix();
 
 	flag = 1;
-canvasArrayAppend_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -529,7 +529,7 @@ int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
 	if (!c || ca->size < 1)
-		goto canvasArrayRem_cleanup;
+		goto cleanup;
 
 	MAP_CANVASES(ca, i, ci) {
 		if (ci == c) {
@@ -539,7 +539,7 @@ int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
 					sizeof (struct canvas *)
 					);
 			if (!newArray.array)
-				goto canvasArrayRem_cleanup;
+				goto cleanup;
 			for (int j = 0; j < i; ++j)
 				newArray.array[j] = ca->array[j];
 			for (int j = i; j < newArray.size; ++j)
@@ -554,7 +554,7 @@ int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
 		easelBoundsFix();
 
 	flag = 1;
-canvasArrayRem_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -595,13 +595,13 @@ int pixelArrayFree(struct pixelArray *pa)
 {
 	int flag = 0;
 	if (!pa)
-		goto pixelArrayFree_cleanup;
+		goto cleanup;
 
 	free(pa->array);
 	free(pa);
 
 	flag = 1;
-pixelArrayFree_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -609,19 +609,19 @@ int pixelArrayAppend(struct pixelArray *pa, struct pixel pix)
 {
 	int flag = 0;
 	if (!pa)
-		goto pixelArrayAppend_cleanup;
+		goto cleanup;
 
 	if (pa->size * sizeof (struct pixel) == pa->memlen) {
 		if (pa->memlen == 0) {
 			struct pixel *newArray = malloc(sizeof (struct pixel));
 			if (!newArray)
-				goto pixelArrayAppend_cleanup;
+				goto cleanup;
 			pa->memlen = sizeof (struct pixel);
 			pa->array = newArray;
 		} else {
 			struct pixel *newArray = realloc(pa->array, 2 * pa->memlen);
 			if (!newArray)
-				goto pixelArrayAppend_cleanup;
+				goto cleanup;
 			pa->memlen *= 2;
 			pa->array = newArray;
 		}
@@ -629,7 +629,7 @@ int pixelArrayAppend(struct pixelArray *pa, struct pixel pix)
 	pa->array[pa->size++] = pix;
 
 	flag = 1;
-pixelArrayAppend_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -637,12 +637,12 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 {
 	int flag = 0;
 	if (!pa)
-		goto pixelArrayLine_cleanup;
+		goto cleanup;
 
 	if (inX1 == inX2 && inY1 == inY2) {
 		struct pixel pix = {inX1, inY1};
 		pixelArrayAppend(pa, pix);
-		goto pixelArrayLine_cleanupNoError;
+		goto cleanupNoError;
 	}
 
 	int dx, dy;
@@ -731,9 +731,9 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 		pixelArrayAppend(pa, pix);
 	}
 
-pixelArrayLine_cleanupNoError:
+cleanupNoError:
 	flag = 1;
-pixelArrayLine_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -741,12 +741,12 @@ int pixelArrayReset(struct pixelArray *pa)
 {
 	int flag = 0;
 	if (!pa)
-		goto pixelArrayReset_cleanup;
+		goto cleanup;
 
 	pa->size = 0;
 
 	flag = 1;
-pixelArrayReset_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -754,7 +754,7 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 {
 	int flag = 0;
 	if (!pa)
-		goto pixelArrayDo_cleanup;
+		goto cleanup;
 
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
@@ -771,7 +771,7 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 	SDL_SetRenderTarget(ren, NULL);
 
 	flag = 1;
-pixelArrayDo_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -848,7 +848,7 @@ int setDrag(enum ActionDrag action)
 		case D_PANZOOM:
 			{
 				if (!SDL_GetMouseFocus())
-					goto setDrag_cleanupNoError;
+					goto cleanupNoError;
 				int mx, my;
 				SDL_GetMouseState(&mx, &my);
 				state.drag.panZoom.offX = state.easel.x - mx;
@@ -875,7 +875,7 @@ int setDrag(enum ActionDrag action)
 						1, 1
 						);
 				if (!c)
-					goto setDrag_cleanup;
+					goto cleanup;
 				canvasArrayAppend(state.canvasArr, c);
 				canvasArrayAppend(state.canvasSel, c);
 				break;
@@ -891,7 +891,7 @@ int setDrag(enum ActionDrag action)
 							TO_COORD_EASEL_Y(my)
 							);
 					if (!c)
-						goto setDrag_cleanupNoError;
+						goto cleanupNoError;
 					canvasArrayAppend(state.canvasSel, c);
 				}
 				int *newArray;
@@ -900,28 +900,28 @@ int setDrag(enum ActionDrag action)
 						(state.canvasSel->size * sizeof (int *))
 						);
 				if (!newArray)
-					goto setDrag_cleanup;
+					goto cleanup;
 				state.drag.canvasTransform.offX = newArray;
 				newArray = realloc(
 						state.drag.canvasTransform.offY,
 						(state.canvasSel->size * sizeof (int *))
 						);
 				if (!newArray)
-					goto setDrag_cleanup;
+					goto cleanup;
 				state.drag.canvasTransform.offY = newArray;
 				newArray = realloc(
 						state.drag.canvasTransform.offW,
 						(state.canvasSel->size * sizeof (int *))
 						);
 				if (!newArray)
-					goto setDrag_cleanup;
+					goto cleanup;
 				state.drag.canvasTransform.offW = newArray;
 				newArray = realloc(
 						state.drag.canvasTransform.offH,
 						(state.canvasSel->size * sizeof (int *))
 						);
 				if (!newArray)
-					goto setDrag_cleanup;
+					goto cleanup;
 				state.drag.canvasTransform.offH = newArray;
 				break;
 			}
@@ -973,9 +973,9 @@ int setDrag(enum ActionDrag action)
 
 	state.drag.action = action;
 
-setDrag_cleanupNoError:
+cleanupNoError:
 	flag = 1;
-setDrag_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -985,11 +985,11 @@ int resetDrag()
 
 	if (state.drag.action != D_PANZOOM) {
 		if (!setDrag(D_NONE))
-			goto resetDrag_cleanup;
+			goto cleanup;
 	}
 
 	flag = 1;
-resetDrag_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -998,11 +998,11 @@ int setScope(enum Scope scope)
 	int flag = 0;
 
 	if (!resetDrag())
-		goto setScope_cleanup;
+		goto cleanup;
 	state.scope = scope;
 
 	flag = 1;
-setScope_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1011,11 +1011,11 @@ int setModeEasel(enum ModeEasel mode)
 	int flag = 0;
 
 	if (!resetDrag())
-		goto setModeEasel_cleanup;
+		goto cleanup;
 	state.modeEasel = mode;
 
 	flag = 1;
-setModeEasel_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1024,11 +1024,11 @@ int setModeCanvas(enum ModeCanvas mode)
 	int flag = 0;
 
 	if (!resetDrag())
-		goto setModeCanvas_cleanup;
+		goto cleanup;
 	state.modeCanvas = mode;
 
 	flag = 1;
-setModeCanvas_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1088,9 +1088,9 @@ int setSpace(int space)
 
 	state.space = space;
 
-setSpace_cleanupNoError:
+cleanupNoError:
 	flag = 1;
-setSpace_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1225,7 +1225,7 @@ int frameDo()
 	SDL_RenderPresent(ren);
 
 	flag = 1;
-frameDo_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1234,10 +1234,10 @@ int eventRender(SDL_Event *e)
 	int flag = 0;
 
 	if (!texFix())
-		goto eventRender_cleanup;
+		goto cleanup;
 
 	flag = 1;
-eventRender_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1246,24 +1246,24 @@ int eventKeyDown(SDL_Event *e)
 	int flag = 0;
 
 	if (e->key.repeat)
-		goto eventKeyDown_cleanupNoError;
+		goto cleanupNoError;
 
 	switch (e->key.keysym.sym) {
 		case SDLK_F12:
 			state.debug = !state.debug;
-			goto eventKeyDown_cleanupNoError;
+			goto cleanupNoError;
 		case SDLK_v:
 			setScope(S_EASEL);
-			goto eventKeyDown_cleanupNoError;
+			goto cleanupNoError;
 		case SDLK_c:
 			setScope(S_CANVAS);
-			goto eventKeyDown_cleanupNoError;
+			goto cleanupNoError;
 		case SDLK_g:
 			setDrag(D_PANZOOM);
-			goto eventKeyDown_cleanupNoError;
+			goto cleanupNoError;
 		case SDLK_SPACE:
 			setSpace(1);
-			goto eventKeyDown_cleanupNoError;
+			goto cleanupNoError;
 		default:
 			break;
 	}
@@ -1272,13 +1272,13 @@ int eventKeyDown(SDL_Event *e)
 			switch (e->key.keysym.sym) {
 				case SDLK_r:
 					setModeEasel(E_EDIT);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				case SDLK_e:
 					setModeEasel(E_TRANSFORM);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				case SDLK_w:
 					setModeEasel(E_SELECT);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				default:
 					break;
 			}
@@ -1390,11 +1390,11 @@ int eventKeyDown(SDL_Event *e)
 						struct canvas *c;
 						case SDLK_f:
 							sel = 1;
-							goto eventKeyDown_E_SELECT_fd;
+							goto E_SELECT_fd;
 						case SDLK_d:
 							sel = 0;
-							goto eventKeyDown_E_SELECT_fd;
-eventKeyDown_E_SELECT_fd:
+							goto E_SELECT_fd;
+E_SELECT_fd:
 							SDL_GetMouseState(&mx, &my);
 							c = canvasArrayFind(
 								state.canvasArr,
@@ -1446,13 +1446,13 @@ eventKeyDown_E_SELECT_fd:
 			switch (e->key.keysym.sym) {
 				case SDLK_r:
 					setModeCanvas(C_PIXEL);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				case SDLK_e:
 					setModeCanvas(C_LINE);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				case SDLK_w:
 					setModeCanvas(C_FILL);
-					goto eventKeyDown_cleanupNoError;
+					goto cleanupNoError;
 				default:
 					break;
 			}
@@ -1543,9 +1543,9 @@ eventKeyDown_E_SELECT_fd:
 			break;
 	}
 
-eventKeyDown_cleanupNoError:
+cleanupNoError:
 	flag = 1;
-eventKeyDown_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1557,10 +1557,10 @@ int eventKeyUp(SDL_Event *e)
 		case SDLK_g:
 			if (state.drag.action == D_PANZOOM)
 				setDrag(D_NONE);
-			goto eventKeyUp_cleanup;
+			goto cleanup;
 		case SDLK_SPACE:
 			setSpace(0);
-			goto eventKeyUp_cleanup;
+			goto cleanup;
 		default:
 			break;
 	}
@@ -1673,7 +1673,7 @@ int eventKeyUp(SDL_Event *e)
 	}
 
 	flag = 1;
-eventKeyUp_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1857,7 +1857,7 @@ int eventMouseMotion(SDL_Event *e)
 	}
 
 	flag = 1;
-eventMouseMotion_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1872,15 +1872,15 @@ int eventDo(SDL_Event *e)
 				break;
 			case SDL_KEYDOWN:
 				if (!eventKeyDown(e))
-					goto eventDo_cleanup;
+					goto cleanup;
 				break;
 			case SDL_KEYUP:
 				if (!eventKeyUp(e))
-					goto eventDo_cleanup;
+					goto cleanup;
 				break;
 			case SDL_MOUSEMOTION:
 				if (!eventMouseMotion(e))
-					goto eventDo_cleanup;
+					goto cleanup;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				break;
@@ -1893,7 +1893,7 @@ int eventDo(SDL_Event *e)
 			case SDL_RENDER_TARGETS_RESET:
 			case SDL_RENDER_DEVICE_RESET:
 				if (!eventRender(e))
-					goto eventDo_cleanup;
+					goto cleanup;
 				break;
 			default:
 				break;
@@ -1901,7 +1901,7 @@ int eventDo(SDL_Event *e)
 	}
 
 	flag = 1;
-eventDo_cleanup:
+cleanup:
 	return flag;
 }
 
@@ -1912,7 +1912,7 @@ int main(int argc, char **argv)
 	int flag = 1;
 
 	if (!init())
-		goto main_cleanup;
+		goto cleanup;
 
 	struct canvas *a = canvasNew(
 			(INIT_WIN_WIDTH / INIT_SCALE - INIT_CANVAS_WIDTH) / 2,
@@ -1938,7 +1938,7 @@ int main(int argc, char **argv)
 	}
 
 	flag = 0;
-main_cleanup:
+cleanup:
 	if (flag)
 		puts(SDL_GetError());
 	quit();
