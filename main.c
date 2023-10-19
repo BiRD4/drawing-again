@@ -1315,9 +1315,9 @@ int eventKeyDown(SDL_Event *e)
 					break;
 				case E_TRANSFORM:
 					switch (e->key.keysym.sym) {
-						int mx, my;
 						case SDLK_f:
 						{
+							int mx;
 							SDL_GetMouseState(&mx, NULL);
 							state.drag.canvasTransform.setX = 1;
 							if (state.drag.action != D_CANVASTRANSFORM)
@@ -1333,6 +1333,7 @@ int eventKeyDown(SDL_Event *e)
 						}
 						case SDLK_d:
 						{
+							int my;
 							SDL_GetMouseState(NULL, &my);
 							state.drag.canvasTransform.setY = 1;
 							if (state.drag.action != D_CANVASTRANSFORM)
@@ -1348,6 +1349,7 @@ int eventKeyDown(SDL_Event *e)
 						}
 						case SDLK_s:
 						{
+							int mx;
 							SDL_GetMouseState(&mx, NULL);
 							state.drag.canvasTransform.setW = 1;
 							if (state.drag.action != D_CANVASTRANSFORM)
@@ -1363,6 +1365,7 @@ int eventKeyDown(SDL_Event *e)
 						}
 						case SDLK_a:
 						{
+							int my;
 							SDL_GetMouseState(NULL, &my);
 							state.drag.canvasTransform.setH = 1;
 							if (state.drag.action != D_CANVASTRANSFORM)
@@ -1382,57 +1385,55 @@ int eventKeyDown(SDL_Event *e)
 					break;
 				case E_SELECT:
 					switch (e->key.keysym.sym) {
+						int sel;
 						int mx, my;
 						struct canvas *c;
 						case SDLK_f:
-							SDL_GetMouseState(&mx, &my);
-							c = canvasArrayFind(
-								state.canvasArr,
-								TO_COORD_EASEL_X(mx),
-								TO_COORD_EASEL_Y(my)
-								);
-							if (c && !c->isSel) {
-								canvasArrayAppend(state.canvasSel, c);
-								c->isSel = 1;
-							}
-							break;
+							sel = 1;
+							goto eventKeyDown_E_SELECT_fd;
 						case SDLK_d:
+							sel = 0;
+							goto eventKeyDown_E_SELECT_fd;
+eventKeyDown_E_SELECT_fd:
 							SDL_GetMouseState(&mx, &my);
 							c = canvasArrayFind(
 								state.canvasArr,
 								TO_COORD_EASEL_X(mx),
 								TO_COORD_EASEL_Y(my)
 								);
-							if (c && c->isSel) {
-								canvasArrayRem(state.canvasSel, c);
-								c->isSel = 0;
+							if (sel) {
+								if (c && !c->isSel) {
+									canvasArrayAppend(state.canvasSel, c);
+									c->isSel = 1;
+								}
+							} else {
+								if (c && c->isSel) {
+									canvasArrayRem(state.canvasSel, c);
+									c->isSel = 0;
+								}
 							}
 							break;
 						case SDLK_s:
-							{
-								if (state.canvasSel->size != 0) {
-									struct canvasArray *oldArray =
-										canvasArrayCopy(state.canvasSel);
-									MAP_CANVASES(oldArray, i, c) {
-										canvasArrayRem(state.canvasSel, c);
-										c->isSel = 0;
-									}
-									canvasArrayFree(oldArray);
+							if (state.canvasSel->size != 0) {
+								struct canvasArray *oldArray =
+									canvasArrayCopy(state.canvasSel);
+								MAP_CANVASES(oldArray, i, c) {
+									canvasArrayRem(state.canvasSel, c);
+									c->isSel = 0;
 								}
-								break;
+								canvasArrayFree(oldArray);
 							}
+							break;
 						case SDLK_a:
-							{
-								if (state.canvasArr->size != 0) {
-									MAP_CANVASES(state.canvasArr, i, c) {
-										if (!c->isSel) {
-											canvasArrayAppend(state.canvasSel, c);
-											c->isSel = 1;
-										}
+							if (state.canvasArr->size != 0) {
+								MAP_CANVASES(state.canvasArr, i, c) {
+									if (!c->isSel) {
+										canvasArrayAppend(state.canvasSel, c);
+										c->isSel = 1;
 									}
 								}
-								break;
 							}
+							break;
 						default:
 							break;
 					}
@@ -1620,9 +1621,8 @@ int eventKeyUp(SDL_Event *e)
 				case C_PIXEL:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
-							if (state.drag.drawPixel.key == KEY_F) {
+							if (state.drag.drawPixel.key == KEY_F)
 								setDrag(D_NONE);
-							}
 							break;
 						case SDLK_d:
 							if (state.drag.drawPixel.key == KEY_D)
@@ -1643,9 +1643,8 @@ int eventKeyUp(SDL_Event *e)
 				case C_LINE:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
-							if (state.drag.drawLine.key == KEY_F) {
+							if (state.drag.drawLine.key == KEY_F)
 								setDrag(D_NONE);
-							}
 							break;
 						case SDLK_d:
 							if (state.drag.drawLine.key == KEY_D)
