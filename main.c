@@ -125,6 +125,9 @@ struct {
 			enum Key key;
 			SDL_Color color;
 			struct pixelArray *pixels;
+			struct canvas *preview;
+			struct canvasArray *previewArr;
+			struct pixelArray *previewPixels;
 		} drawLine;
 	} drag;
 
@@ -147,7 +150,7 @@ struct {
 		{0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, NULL, NULL, NULL, NULL},
 		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
-		{0, 0, KEY_F, {0, 0, 0, 0}, NULL}
+		{0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL}
 	},
 	{
 		{255,   0,   0, 255},
@@ -209,6 +212,13 @@ int init()
 	state.drag.drawPixel.pixels = pixelArrayNew();
 
 	state.drag.drawLine.pixels = pixelArrayNew();
+	state.drag.drawLine.preview = canvasNew(0, 0, 1, 1);
+	state.drag.drawLine.previewArr = canvasArrayNew();
+	canvasArrayAppend(
+			state.drag.drawLine.previewArr,
+			state.drag.drawLine.preview
+			);
+	state.drag.drawLine.previewPixels = pixelArrayNew();
 
 	state.canvasArr = canvasArrayNew();
 	state.canvasSel = canvasArrayNew();
@@ -228,6 +238,8 @@ void quit()
 	free(state.drag.drawPixel.pixels);
 
 	free(state.drag.drawLine.pixels);
+	canvasDel(state.drag.drawLine.preview);
+	canvasArrayFree(state.drag.drawLine.previewArr);
 
 	if (state.canvasArr->size != 0) {
 		MAP_CANVASES(state.canvasArr, i, c) {
@@ -350,6 +362,25 @@ int canvasDel(struct canvas *c)
 
 	flag = 1;
 canvasDel_cleanup:
+	return flag;
+}
+
+int canvasClear(struct canvas *c)
+{
+	int flag = 0;
+	if (!c)
+		goto canvasClear_cleanup;
+
+	SDL_SetRenderTarget(ren, c->tex);
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+	SDL_RenderClear(ren);
+	SDL_SetRenderTarget(ren, NULL);
+
+	SDL_SetRenderDrawColor(c->ren, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+	SDL_RenderClear(c->ren);
+
+	flag = 1;
+canvasClear_cleanup:
 	return flag;
 }
 
@@ -925,6 +956,28 @@ int setDrag(enum ActionDrag action)
 				state.drag.drawLine.initX = TO_COORD_EASEL_X(mx);
 				state.drag.drawLine.initY = TO_COORD_EASEL_Y(my);
 				pixelArrayReset(state.drag.drawLine.pixels);
+				canvasClear(state.drag.drawLine.preview);
+				canvasMove(
+						state.drag.drawLine.preview,
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY,
+						1, 1
+						);
+				canvasFix(state.drag.drawLine.preview);
+				pixelArrayReset(state.drag.drawLine.previewPixels);
+				struct pixel pix = {
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY
+				};
+				pixelArrayAppend(
+						state.drag.drawLine.previewPixels,
+						pix
+						);
+				pixelArrayDo(
+						state.drag.drawLine.previewPixels,
+						state.drag.drawLine.previewArr,
+						state.drag.drawLine.color
+					    );
 				break;
 			}
 		default:
@@ -1098,6 +1151,25 @@ int frameDo()
 		}
 	}
 
+	if (state.drag.action == D_DRAWLINE) {
+		struct canvas *c = state.drag.drawLine.preview;
+		int tw, th;
+		SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+		SDL_Rect src = {
+			0, 0,
+			(c->w >= tw) ? tw : c->w,
+			(c->h >= th) ? th : c->h
+		};
+		SDL_Rect dst = {
+			TO_COORD_SCREEN_X(c->x),
+			TO_COORD_SCREEN_Y(c->y),
+			state.easel.s * src.w,
+			state.easel.s * src.h
+		};
+
+		SDL_RenderCopy(ren, c->tex, &src, &dst);
+	}
+
 	int cursorX;
 	int cursorY;
 	if (state.drag.action == D_PANZOOM && state.space) {
@@ -1135,6 +1207,19 @@ int frameDo()
 				};
 				SDL_RenderDrawRect(ren, &texture);
 			}
+		}
+
+		if (state.drag.action == D_DRAWLINE) {
+			struct canvas *c = state.drag.drawLine.preview;
+			int tw, th;
+			SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+			SDL_Rect texture = {
+				TO_COORD_SCREEN_X(c->x),
+				TO_COORD_SCREEN_Y(c->y),
+				state.easel.s * tw,
+				state.easel.s * th
+			};
+			SDL_RenderDrawRect(ren, &texture);
 		}
 
 		SDL_SetRenderDrawColor(ren, 0, 255, 0, SDL_ALPHA_OPAQUE);
@@ -1718,15 +1803,69 @@ int eventMouseMotion(SDL_Event *e)
 				break;
 			}
 		case D_DRAWLINE:
-			pixelArrayReset(state.drag.drawLine.pixels);
-			pixelArrayLine(
-				state.drag.drawLine.pixels,
-				state.drag.drawLine.initX,
-				state.drag.drawLine.initY,
-				TO_COORD_EASEL_X(e->motion.x),
-				TO_COORD_EASEL_Y(e->motion.y)
-				);
-			break;
+			{
+				int easelX = TO_COORD_EASEL_X(e->motion.x);
+				int easelY = TO_COORD_EASEL_Y(e->motion.y);
+				pixelArrayReset(state.drag.drawLine.pixels);
+				pixelArrayLine(
+						state.drag.drawLine.pixels,
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY,
+						easelX, easelY
+					      );
+				canvasClear(state.drag.drawLine.preview);
+				if (easelX >= state.drag.drawLine.initX) {
+					if (easelY >= state.drag.drawLine.initY) {
+						canvasMove(
+								state.drag.drawLine.preview,
+								state.drag.drawLine.initX,
+								state.drag.drawLine.initY,
+								easelX - state.drag.drawLine.initX + 1,
+								easelY - state.drag.drawLine.initY + 1
+							  );
+					} else {
+						canvasMove(
+								state.drag.drawLine.preview,
+								state.drag.drawLine.initX,
+								easelY,
+								easelX - state.drag.drawLine.initX + 1,
+								state.drag.drawLine.initY - easelY + 1
+							  );
+					}
+				} else {
+					if (easelY >= state.drag.drawLine.initY) {
+						canvasMove(
+								state.drag.drawLine.preview,
+								easelX,
+								state.drag.drawLine.initY,
+								state.drag.drawLine.initX - easelX + 1,
+								easelY - state.drag.drawLine.initY + 1
+							  );
+					} else {
+						canvasMove(
+								state.drag.drawLine.preview,
+								easelX,
+								easelY,
+								state.drag.drawLine.initX - easelX + 1,
+								state.drag.drawLine.initY - easelY + 1
+							  );
+					}
+				}
+				canvasFix(state.drag.drawLine.preview);
+				pixelArrayReset(state.drag.drawLine.previewPixels);
+				pixelArrayLine(
+						state.drag.drawLine.previewPixels,
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY,
+						easelX, easelY
+					      );
+				pixelArrayDo(
+						state.drag.drawLine.previewPixels,
+						state.drag.drawLine.previewArr,
+						state.drag.drawLine.color
+					    );
+				break;
+			}
 		default:
 			break;
 	}
