@@ -118,6 +118,13 @@ struct {
 			enum Key {KEY_F, KEY_D, KEY_S, KEY_A} key;
 			SDL_Color color;
 			struct pixelArray *pixels;
+		} drawPixel;
+		struct {
+			int initX;
+			int initY;
+			enum Key key;
+			SDL_Color color;
+			struct pixelArray *pixels;
 		} drawLine;
 	} drag;
 
@@ -135,8 +142,19 @@ struct {
 	0, 0, 0, 0,
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL,
-	{D_NONE, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, NULL, NULL, NULL, NULL}, {0, 0, KEY_F, {0, 0, 0, 0}, NULL}},
-	{{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 255, 255}},
+	{
+		D_NONE,
+		{0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, NULL, NULL, NULL, NULL},
+		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
+		{0, 0, KEY_F, {0, 0, 0, 0}, NULL}
+	},
+	{
+		{255,   0,   0, 255},
+		{  0, 255,   0, 255},
+		{  0,   0, 255, 255},
+		{255, 255, 255, 255}
+	},
 	NULL, NULL
 };
 
@@ -184,6 +202,11 @@ int init()
 	if (ren == NULL)
 		goto init_cleanup;
 
+	state.drag.drawPixel.pixels = malloc(sizeof (struct pixelArray));
+	state.drag.drawPixel.pixels->memlen = 0;
+	state.drag.drawPixel.pixels->size = 0;
+	state.drag.drawPixel.pixels->array = NULL;
+
 	state.drag.drawLine.pixels = malloc(sizeof (struct pixelArray));
 	state.drag.drawLine.pixels->memlen = 0;
 	state.drag.drawLine.pixels->size = 0;
@@ -207,6 +230,7 @@ void quit()
 	free(state.drag.canvasTransform.offY);
 	free(state.drag.canvasTransform.offW);
 	free(state.drag.canvasTransform.offH);
+	free(state.drag.drawPixel.pixels);
 	free(state.drag.drawLine.pixels);
 
 	if (state.canvasArr->size != 0) {
@@ -850,7 +874,24 @@ int setDrag(enum ActionDrag action)
 			}
 		case D_DRAWPIXEL:
 			{
-				// TODO
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				state.drag.drawPixel.initX = TO_COORD_EASEL_X(mx);
+				state.drag.drawPixel.initY = TO_COORD_EASEL_Y(my);
+				pixelArrayReset(state.drag.drawPixel.pixels);
+				struct pixel pix = {
+					state.drag.drawPixel.initX,
+					state.drag.drawPixel.initY
+				};
+				pixelArrayAppend(
+						state.drag.drawPixel.pixels,
+						pix
+						);
+				pixelArrayDo(
+						state.drag.drawPixel.pixels,
+						state.drag.drawPixel.color
+						);
+				pixelArrayReset(state.drag.drawPixel.pixels);
 				break;
 			}
 		case D_DRAWLINE:
@@ -1322,12 +1363,28 @@ int eventKeyDown(SDL_Event *e)
 				case C_PIXEL:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							state.drag.drawPixel.key = KEY_F;
+							state.drag.drawPixel.color =
+								state.colors.f;
+							setDrag(D_DRAWPIXEL);
 							break;
 						case SDLK_d:
+							state.drag.drawPixel.key = KEY_D;
+							state.drag.drawPixel.color =
+								state.colors.d;
+							setDrag(D_DRAWPIXEL);
 							break;
 						case SDLK_s:
+							state.drag.drawPixel.key = KEY_S;
+							state.drag.drawPixel.color =
+								state.colors.s;
+							setDrag(D_DRAWPIXEL);
 							break;
 						case SDLK_a:
+							state.drag.drawPixel.key = KEY_A;
+							state.drag.drawPixel.color =
+								state.colors.a;
+							setDrag(D_DRAWPIXEL);
 							break;
 						default:
 							break;
@@ -1467,9 +1524,21 @@ int eventKeyUp(SDL_Event *e)
 				case C_PIXEL:
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
+							if (state.drag.drawPixel.key == KEY_F) {
+								setDrag(D_NONE);
+							}
+							break;
 						case SDLK_d:
+							if (state.drag.drawPixel.key == KEY_D)
+								setDrag(D_NONE);
+							break;
 						case SDLK_s:
+							if (state.drag.drawPixel.key == KEY_S)
+								setDrag(D_NONE);
+							break;
 						case SDLK_a:
+							if (state.drag.drawPixel.key == KEY_A)
+								setDrag(D_NONE);
 							break;
 						default:
 							break;
@@ -1603,7 +1672,23 @@ int eventMouseMotion(SDL_Event *e)
 				break;
 			}
 		case D_DRAWPIXEL:
-			break;
+			{
+				pixelArrayReset(state.drag.drawPixel.pixels);
+				pixelArrayLine(
+						state.drag.drawPixel.pixels,
+						state.drag.drawPixel.initX,
+						state.drag.drawPixel.initY,
+						TO_COORD_EASEL_X(e->motion.x),
+						TO_COORD_EASEL_Y(e->motion.y)
+					      );
+				pixelArrayDo(
+						state.drag.drawPixel.pixels,
+						state.drag.drawPixel.color
+						);
+				state.drag.drawPixel.initX = TO_COORD_EASEL_X(e->motion.x);
+				state.drag.drawPixel.initY = TO_COORD_EASEL_Y(e->motion.y);
+				break;
+			}
 		case D_DRAWLINE:
 			pixelArrayReset(state.drag.drawLine.pixels);
 			pixelArrayLine(
