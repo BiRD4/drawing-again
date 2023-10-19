@@ -591,6 +591,12 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 	if (!pa)
 		goto pixelArrayLine_cleanup;
 
+	if (inX1 == inX2 && inY1 == inY2) {
+		struct pixel pix = {inX1, inY1};
+		pixelArrayAppend(pa, pix);
+		goto pixelArrayLine_cleanupNoError;
+	}
+
 	int dx, dy;
 	if (inX1 <= inX2)
 		dx = inX2 - inX1;
@@ -677,6 +683,7 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 		pixelArrayAppend(pa, pix);
 	}
 
+pixelArrayLine_cleanupNoError:
 	flag = 1;
 pixelArrayLine_cleanup:
 	return flag;
