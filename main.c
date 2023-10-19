@@ -25,13 +25,13 @@
                 ++i, c = ca->array[i]    \
                 )
 
-#define LOCK_SURFACE_IF_MUST(s)   \
-        if (SDL_MUSTLOCK(s))      \
-        SDL_LockSurface(s);
+#define LOCK_SURFACE_IF_MUST(s)       \
+        if (SDL_MUSTLOCK(s))          \
+                SDL_LockSurface(s);
 
-#define UNLOCK_SURFACE_IF_MUST(s) \
-        if (SDL_MUSTLOCK(s))      \
-        SDL_UnlockSurface(s);
+#define UNLOCK_SURFACE_IF_MUST(s)     \
+        if (SDL_MUSTLOCK(s))          \
+                SDL_UnlockSurface(s);
 
 struct canvas {
 	int isSel;
@@ -161,6 +161,10 @@ struct {
 SDL_Window *win;
 SDL_Renderer *ren;
 
+struct canvas *canvasNew(int x, int y, int w, int h);
+struct canvasArray *canvasArrayNew();
+struct pixelArray *pixelArrayNew();
+
 int ceiling(float f)
 {
 	int i = (int) f;
@@ -202,22 +206,12 @@ int init()
 	if (ren == NULL)
 		goto init_cleanup;
 
-	state.drag.drawPixel.pixels = malloc(sizeof (struct pixelArray));
-	state.drag.drawPixel.pixels->memlen = 0;
-	state.drag.drawPixel.pixels->size = 0;
-	state.drag.drawPixel.pixels->array = NULL;
+	state.drag.drawPixel.pixels = pixelArrayNew();
 
-	state.drag.drawLine.pixels = malloc(sizeof (struct pixelArray));
-	state.drag.drawLine.pixels->memlen = 0;
-	state.drag.drawLine.pixels->size = 0;
-	state.drag.drawLine.pixels->array = NULL;
+	state.drag.drawLine.pixels = pixelArrayNew();
 
-	state.canvasArr = malloc(sizeof (struct canvasArray));
-	state.canvasSel = malloc(sizeof (struct canvasArray));
-	state.canvasArr->size = 0;
-	state.canvasSel->size = 0;
-	state.canvasArr->array = NULL;
-	state.canvasSel->array = NULL;
+	state.canvasArr = canvasArrayNew();
+	state.canvasSel = canvasArrayNew();
 
 	flag = 1;
 init_cleanup:
@@ -230,7 +224,9 @@ void quit()
 	free(state.drag.canvasTransform.offY);
 	free(state.drag.canvasTransform.offW);
 	free(state.drag.canvasTransform.offH);
+
 	free(state.drag.drawPixel.pixels);
+
 	free(state.drag.drawLine.pixels);
 
 	if (state.canvasArr->size != 0) {
@@ -238,8 +234,8 @@ void quit()
 			canvasDel(c);
 		}
 	}
-	free(state.canvasArr);
-	free(state.canvasSel);
+	canvasArrayFree(state.canvasArr);
+	canvasArrayFree(state.canvasSel);
 
 	SDL_DestroyRenderer(ren);
 	SDL_Quit();
@@ -337,72 +333,16 @@ canvasNew_cleanup:
 	return NULL;
 }
 
-int canvasAdd(struct canvasArray *ca, struct canvas *c)
-{
-	int flag = 0;
-	if (!c)
-		goto canvasAdd_cleanup;
-
-	struct canvasArray newArray = {ca->size + 1, NULL};
-	newArray.array = realloc(
-			ca->array,
-			newArray.size * sizeof (struct canvas *)
-			);
-	if (!newArray.array)
-		goto canvasAdd_cleanup;
-	newArray.array[newArray.size - 1] = c;
-	ca->size = newArray.size;
-	ca->array = newArray.array;
-
-	if (ca == state.canvasArr)
-		easelBoundsFix();
-
-	flag = 1;
-canvasAdd_cleanup:
-	return flag;
-}
-
-int canvasRem(struct canvasArray *ca, struct canvas *c)
-{
-	int flag = 0;
-	if (!c || ca->size < 1)
-		goto canvasRem_cleanup;
-
-	MAP_CANVASES(ca, i, ci) {
-		if (ci == c) {
-			struct canvasArray newArray = {ca->size - 1, NULL};
-			newArray.array = calloc(
-					newArray.size,
-					sizeof (struct canvas *)
-					);
-			if (!newArray.array)
-				goto canvasRem_cleanup;
-			for (int j = 0; j < i; ++j)
-				newArray.array[j] = ca->array[j];
-			for (int j = i; j < newArray.size; ++j)
-				newArray.array[j] = ca->array[j + 1];
-			free(ca->array);
-			ca->size = newArray.size;
-			ca->array = newArray.array;
-		}
-	}
-
-	if (ca == state.canvasArr)
-		easelBoundsFix();
-
-	flag = 1;
-canvasRem_cleanup:
-	return flag;
-}
-
 int canvasDel(struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
 		goto canvasDel_cleanup;
 
-	canvasRem(state.canvasArr, c);
-	canvasRem(state.canvasSel, c);
+	if (canvasArrayHas(state.canvasArr, c))
+		canvasArrayRem(state.canvasArr, c);
+	if (canvasArrayHas(state.canvasSel, c))
+		canvasArrayRem(state.canvasSel, c);
 	SDL_DestroyTexture(c->tex);
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
@@ -411,19 +351,6 @@ int canvasDel(struct canvas *c)
 	flag = 1;
 canvasDel_cleanup:
 	return flag;
-}
-
-struct canvas *canvasGet(struct canvasArray *ca, int x, int y)
-{
-	for (int i = ca->size - 1; i >= 0; --i) {
-		struct canvas *c = ca->array[i];
-		if (x >= c->x
-		 && y >= c->y
-		 && x <  c->x + c->w
-		 && y <  c->y + c->h)
-			return c;
-	}
-	return NULL;
 }
 
 int canvasMove(struct canvas *c, int x, int y, int w, int h)
@@ -493,6 +420,16 @@ canvasFix_cleanup:
 	return flag;
 }
 
+struct canvasArray *canvasArrayNew()
+{
+	struct canvasArray *ca = malloc(sizeof (struct canvasArray));
+	if (!ca)
+		return NULL;
+	ca->size = 0;
+	ca->array = NULL;
+	return ca;
+}
+
 struct canvasArray *canvasArrayCopy(struct canvasArray *ca)
 {
 	if (!ca)
@@ -530,6 +467,86 @@ int canvasArrayFree(struct canvasArray *ca)
 	flag = 1;
 canvasArrayFree_cleanup:
 	return flag;
+}
+
+int canvasArrayAppend(struct canvasArray *ca, struct canvas *c)
+{
+	int flag = 0;
+	if (!c)
+		goto canvasArrayAppend_cleanup;
+
+	struct canvasArray newArray = {ca->size + 1, NULL};
+	newArray.array = realloc(
+			ca->array,
+			newArray.size * sizeof (struct canvas *)
+			);
+	if (!newArray.array)
+		goto canvasArrayAppend_cleanup;
+	newArray.array[newArray.size - 1] = c;
+	ca->size = newArray.size;
+	ca->array = newArray.array;
+
+	if (ca == state.canvasArr)
+		easelBoundsFix();
+
+	flag = 1;
+canvasArrayAppend_cleanup:
+	return flag;
+}
+
+int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
+{
+	int flag = 0;
+	if (!c || ca->size < 1)
+		goto canvasArrayRem_cleanup;
+
+	MAP_CANVASES(ca, i, ci) {
+		if (ci == c) {
+			struct canvasArray newArray = {ca->size - 1, NULL};
+			newArray.array = calloc(
+					newArray.size,
+					sizeof (struct canvas *)
+					);
+			if (!newArray.array)
+				goto canvasArrayRem_cleanup;
+			for (int j = 0; j < i; ++j)
+				newArray.array[j] = ca->array[j];
+			for (int j = i; j < newArray.size; ++j)
+				newArray.array[j] = ca->array[j + 1];
+			free(ca->array);
+			ca->size = newArray.size;
+			ca->array = newArray.array;
+		}
+	}
+
+	if (ca == state.canvasArr)
+		easelBoundsFix();
+
+	flag = 1;
+canvasArrayRem_cleanup:
+	return flag;
+}
+
+int canvasArrayHas(struct canvasArray *ca, struct canvas *c)
+{
+	for (int i = ca->size - 1; i >= 0; --i) {
+		if (ca->array[i] == c)
+			return 1;
+	}
+	return 0;
+}
+
+struct canvas *canvasArrayFind(struct canvasArray *ca, int x, int y)
+{
+	for (int i = ca->size - 1; i >= 0; --i) {
+		struct canvas *c = ca->array[i];
+		if (x >= c->x
+		 && y >= c->y
+		 && x <  c->x + c->w
+		 && y <  c->y + c->h)
+			return c;
+	}
+	return NULL;
 }
 
 struct pixelArray *pixelArrayNew()
@@ -702,7 +719,7 @@ pixelArrayReset_cleanup:
 	return flag;
 }
 
-int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
+int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 {
 	int flag = 0;
 	if (!pa)
@@ -710,15 +727,9 @@ int pixelArrayDo(struct pixelArray *pa, SDL_Color col)
 
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
-	struct canvasArray *ca;
-	if (state.canvasSel->size != 0)
-		ca = state.canvasSel;
-	else
-		ca = state.canvasArr;
-
 	for (int i = 0; i < pa->size; ++i) {
 		struct pixel pix = pa->array[i];
-		struct canvas *c = canvasGet(ca, pix.x, pix.y);
+		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
 		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
@@ -758,7 +769,7 @@ int setDrag(enum ActionDrag action)
 					canvasArrayCopy(state.canvasSel);
 				MAP_CANVASES(oldArray, i, c) {
 					canvasFix(c);
-					canvasRem(state.canvasSel, c);
+					canvasArrayRem(state.canvasSel, c);
 				}
 				canvasArrayFree(oldArray);
 			}
@@ -770,10 +781,10 @@ int setDrag(enum ActionDrag action)
 				}
 				if (state.canvasSel->size == 1
 				&& !state.canvasSel->array[0]->isSel)
-					canvasRem(
+					canvasArrayRem(
 							state.canvasSel,
 							state.canvasSel->array[0]
-							);
+						      );
 				free(state.drag.canvasTransform.offX);
 				free(state.drag.canvasTransform.offY);
 				free(state.drag.canvasTransform.offW);
@@ -789,8 +800,10 @@ int setDrag(enum ActionDrag action)
 		case D_DRAWLINE:
 			pixelArrayDo(
 					state.drag.drawLine.pixels,
+					(state.canvasSel->size == 0)
+					? state.canvasArr : state.canvasSel,
 					state.drag.drawLine.color
-					);
+				    );
 			break;
 		default:
 			break;
@@ -830,8 +843,8 @@ int setDrag(enum ActionDrag action)
 						);
 				if (!c)
 					goto setDrag_cleanup;
-				canvasAdd(state.canvasArr, c);
-				canvasAdd(state.canvasSel, c);
+				canvasArrayAppend(state.canvasArr, c);
+				canvasArrayAppend(state.canvasSel, c);
 				break;
 			}
 		case D_CANVASTRANSFORM:
@@ -839,14 +852,14 @@ int setDrag(enum ActionDrag action)
 				if (state.canvasSel->size == 0) {
 					int mx, my;
 					SDL_GetMouseState(&mx, &my);
-					struct canvas *c = canvasGet(
+					struct canvas *c = canvasArrayFind(
 							state.canvasArr,
 							TO_COORD_EASEL_X(mx),
 							TO_COORD_EASEL_Y(my)
 							);
 					if (!c)
 						goto setDrag_cleanupNoError;
-					canvasAdd(state.canvasSel, c);
+					canvasArrayAppend(state.canvasSel, c);
 				}
 				int *newArray;
 				newArray = realloc(
@@ -896,8 +909,10 @@ int setDrag(enum ActionDrag action)
 						);
 				pixelArrayDo(
 						state.drag.drawPixel.pixels,
+						(state.canvasSel->size == 0)
+						? state.canvasArr : state.canvasSel,
 						state.drag.drawPixel.color
-						);
+					    );
 				pixelArrayReset(state.drag.drawPixel.pixels);
 				break;
 			}
@@ -1203,7 +1218,7 @@ int eventKeyDown(SDL_Event *e)
 							if (state.canvasSel->size == 0) {
 								int mx, my;
 								SDL_GetMouseState(&mx, &my);
-								struct canvas *c = canvasGet(
+								struct canvas *c = canvasArrayFind(
 									state.canvasArr,
 									TO_COORD_EASEL_X(mx),
 									TO_COORD_EASEL_Y(my)
@@ -1297,25 +1312,25 @@ int eventKeyDown(SDL_Event *e)
 						struct canvas *c;
 						case SDLK_f:
 							SDL_GetMouseState(&mx, &my);
-							c = canvasGet(
+							c = canvasArrayFind(
 								state.canvasArr,
 								TO_COORD_EASEL_X(mx),
 								TO_COORD_EASEL_Y(my)
 								);
 							if (c && !c->isSel) {
-								canvasAdd(state.canvasSel, c);
+								canvasArrayAppend(state.canvasSel, c);
 								c->isSel = 1;
 							}
 							break;
 						case SDLK_d:
 							SDL_GetMouseState(&mx, &my);
-							c = canvasGet(
+							c = canvasArrayFind(
 								state.canvasArr,
 								TO_COORD_EASEL_X(mx),
 								TO_COORD_EASEL_Y(my)
 								);
 							if (c && c->isSel) {
-								canvasRem(state.canvasSel, c);
+								canvasArrayRem(state.canvasSel, c);
 								c->isSel = 0;
 							}
 							break;
@@ -1325,7 +1340,7 @@ int eventKeyDown(SDL_Event *e)
 									struct canvasArray *oldArray =
 										canvasArrayCopy(state.canvasSel);
 									MAP_CANVASES(oldArray, i, c) {
-										canvasRem(state.canvasSel, c);
+										canvasArrayRem(state.canvasSel, c);
 										c->isSel = 0;
 									}
 									canvasArrayFree(oldArray);
@@ -1337,7 +1352,7 @@ int eventKeyDown(SDL_Event *e)
 								if (state.canvasArr->size != 0) {
 									MAP_CANVASES(state.canvasArr, i, c) {
 										if (!c->isSel) {
-											canvasAdd(state.canvasSel, c);
+											canvasArrayAppend(state.canvasSel, c);
 											c->isSel = 1;
 										}
 									}
@@ -1690,8 +1705,10 @@ int eventMouseMotion(SDL_Event *e)
 					      );
 				pixelArrayDo(
 						state.drag.drawPixel.pixels,
+						(state.canvasSel->size == 0)
+						? state.canvasArr : state.canvasSel,
 						state.drag.drawPixel.color
-						);
+					    );
 				state.drag.drawPixel.initX = TO_COORD_EASEL_X(e->motion.x);
 				state.drag.drawPixel.initY = TO_COORD_EASEL_Y(e->motion.y);
 				break;
@@ -1773,7 +1790,7 @@ int main(int argc, char **argv)
 			(INIT_WIN_HEIGHT / INIT_SCALE - INIT_CANVAS_HEIGHT) / 2,
 			INIT_CANVAS_WIDTH, INIT_CANVAS_HEIGHT
 			);
-	canvasAdd(state.canvasArr, a);
+	canvasArrayAppend(state.canvasArr, a);
 
 	Uint32 tickCurr;
 	Uint32 tickNext = 0;
