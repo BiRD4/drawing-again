@@ -768,8 +768,10 @@ int setDrag(enum ActionDrag action)
 				struct canvasArray *oldArray =
 					canvasArrayCopy(state.canvasSel);
 				MAP_CANVASES(oldArray, i, c) {
-					canvasFix(c);
-					canvasArrayRem(state.canvasSel, c);
+					if (!c->isSel) {
+						canvasFix(c);
+						canvasArrayRem(state.canvasSel, c);
+					}
 				}
 				canvasArrayFree(oldArray);
 			}
@@ -1663,10 +1665,12 @@ int eventMouseMotion(SDL_Event *e)
 		case D_CANVASNEW:
 			{
 				MAP_CANVASES(state.canvasSel, i, c) {
-					canvasMove(c, c->x, c->y,
-						TO_COORD_EASEL_X(e->motion.x) - c->x,
-						TO_COORD_EASEL_Y(e->motion.y) - c->y
-						);
+					if (!c->isSel) {
+						canvasMove(c, c->x, c->y,
+								TO_COORD_EASEL_X(e->motion.x) - c->x,
+								TO_COORD_EASEL_Y(e->motion.y) - c->y
+							  );
+					}
 				}
 				break;
 			}
