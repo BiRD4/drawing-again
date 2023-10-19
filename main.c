@@ -503,7 +503,7 @@ cleanup:
 int canvasArrayAppend(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
-	if (!c)
+	if (!ca || !c)
 		goto cleanup;
 
 	struct canvasArray newArray = {ca->size + 1, NULL};
@@ -528,7 +528,7 @@ cleanup:
 int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
-	if (!c || ca->size < 1)
+	if (!ca || !c || ca->size < 1)
 		goto cleanup;
 
 	MAP_CANVASES(ca, i, ci) {
@@ -560,6 +560,8 @@ cleanup:
 
 int canvasArrayHas(struct canvasArray *ca, struct canvas *c)
 {
+	if (!ca || !c)
+		return 0;
 	for (int i = ca->size - 1; i >= 0; --i) {
 		if (ca->array[i] == c)
 			return 1;
@@ -569,6 +571,8 @@ int canvasArrayHas(struct canvasArray *ca, struct canvas *c)
 
 struct canvas *canvasArrayFind(struct canvasArray *ca, int x, int y)
 {
+	if (!ca)
+		return NULL;
 	for (int i = ca->size - 1; i >= 0; --i) {
 		struct canvas *c = ca->array[i];
 		if (x >= c->x
@@ -753,7 +757,7 @@ cleanup:
 int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 {
 	int flag = 0;
-	if (!pa)
+	if (!pa || !ca)
 		goto cleanup;
 
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
