@@ -965,19 +965,6 @@ int setDrag(enum ActionDrag action)
 						);
 				canvasFix(state.drag.drawLine.preview);
 				pixelArrayReset(state.drag.drawLine.previewPixels);
-				struct pixel pix = {
-						state.drag.drawLine.initX,
-						state.drag.drawLine.initY
-				};
-				pixelArrayAppend(
-						state.drag.drawLine.previewPixels,
-						pix
-						);
-				pixelArrayDo(
-						state.drag.drawLine.previewPixels,
-						state.drag.drawLine.previewArr,
-						state.drag.drawLine.color
-					    );
 				break;
 			}
 		default:
