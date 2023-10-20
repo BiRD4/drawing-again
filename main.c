@@ -186,6 +186,29 @@ int round(double f)
 		return i + 1;
 }
 
+int allocDouble(void **array, int *memlen, int blockSize)
+{
+	int flag = 0;
+
+	if (*memlen == 0) {
+		void *newArray = malloc(blockSize);
+		if (!newArray)
+			goto cleanup;
+		*memlen = blockSize;
+		*array = newArray;
+	} else {
+		void *newArray = realloc(*array, 2 * *memlen);
+		if (!newArray)
+			goto cleanup;
+		*memlen *= 2;
+		*array = newArray;
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int init()
 {
 	int flag = 0;
@@ -359,6 +382,36 @@ int canvasDel(struct canvas *c)
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
 	free(c);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasGetColor(struct canvas *c, int cx, int cy, SDL_Color *color)
+{
+	int flag = 0;
+	if (!c)
+		goto cleanup;
+
+	SDL_Surface *surf = c->surf;
+	LOCK_SURFACE_IF_MUST(surf);
+	Uint32 pix = ((Uint32 *)surf->pixels)[surf->w * cy + cx];
+	SDL_PixelFormat *fmt = surf->format;
+	Uint32 tmp;
+	tmp = pix & fmt->Rmask;
+	tmp = tmp >> fmt->Rshift;
+	color->r = tmp << fmt->Rloss;
+	tmp = pix & fmt->Gmask;
+	tmp = tmp >> fmt->Gshift;
+	color->g = tmp << fmt->Gloss;
+	tmp = pix & fmt->Bmask;
+	tmp = tmp >> fmt->Bshift;
+	color->b = tmp << fmt->Bloss;
+	tmp = pix & fmt->Amask;
+	tmp = tmp >> fmt->Ashift;
+	color->a = tmp << fmt->Aloss;
+	UNLOCK_SURFACE_IF_MUST(surf);
 
 	flag = 1;
 cleanup:
@@ -615,21 +668,12 @@ int pixelArrayAppend(struct pixelArray *pa, struct pixel pix)
 	if (!pa)
 		goto cleanup;
 
-	if (pa->size * sizeof (struct pixel) == pa->memlen) {
-		if (pa->memlen == 0) {
-			struct pixel *newArray = malloc(sizeof (struct pixel));
-			if (!newArray)
-				goto cleanup;
-			pa->memlen = sizeof (struct pixel);
-			pa->array = newArray;
-		} else {
-			struct pixel *newArray = realloc(pa->array, 2 * pa->memlen);
-			if (!newArray)
-				goto cleanup;
-			pa->memlen *= 2;
-			pa->array = newArray;
-		}
-	}
+	if (pa->size * sizeof (struct pixel) == pa->memlen)
+		if (!allocDouble(
+				&pa->array, &pa->memlen,
+				sizeof (struct pixel)
+				))
+			goto cleanup;
 	pa->array[pa->size++] = pix;
 
 	flag = 1;
@@ -752,6 +796,18 @@ int pixelArrayReset(struct pixelArray *pa)
 	flag = 1;
 cleanup:
 	return flag;
+}
+
+int pixelArrayHas(struct pixelArray *pa, int x, int y)
+{
+	if (!pa)
+		return 0;
+	for (int i = 0; i < pa->size; ++i) {
+		if (pa->array[i].x == x
+		 && pa->array[i].y == y)
+			return 1;
+	}
+	return 0;
 }
 
 int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
