@@ -785,6 +785,163 @@ cleanup:
 	return flag;
 }
 
+int pixelArrayFill(struct pixelArray *pa, struct canvas *c, int x, int y)
+{
+	int flag = 0;
+	if (!pa || !c)
+		return 0;
+
+	struct dirsNode {
+		int indexPrev;
+		int l, t, r, b;
+	};
+
+	struct dirsArray {
+		int memlen;
+		int size;
+		struct dirsNode *array;
+	};
+
+	int cx = x - c->x;
+	int cy = y - c->y;
+	SDL_Color color;
+	canvasGetColor(c, cx, cy, &color);
+
+	struct dirsArray nodes = {0, 0, NULL};
+	int indexCurr = 0;
+	int indexPrev = -1;
+
+	struct pixel initPix = {c->x + cx, c->y + cy};
+	struct dirsNode initNode = {indexPrev, 0, 0, 0, 0};
+	pixelArrayAppend(pa, initPix);
+	if (nodes.size * sizeof (struct dirsNode) == nodes.memlen) {
+		if (!allocDouble(
+				&nodes.array, &nodes.memlen,
+				sizeof (struct dirsNode)
+				)) {
+			return 0;
+		}
+	}
+	nodes.array[nodes.size++] = initNode;
+	while (!nodes.array[0].l
+	    || !nodes.array[0].t
+	    || !nodes.array[0].r
+	    || !nodes.array[0].b) {
+		struct dirsNode *nodeCurr = nodes.array + indexCurr;
+		if (!nodeCurr->l) {
+			if (cx > 0) {
+				SDL_Color colorNext;
+				canvasGetColor(c, cx - 1, cy, &colorNext);
+				if (colorNext.r == color.r
+				 && colorNext.g == color.g
+				 && colorNext.b == color.b
+				 && colorNext.a == color.a
+				 && !pixelArrayHas(pa, c->x + cx - 1, c->y + cy)) {
+					--cx;
+				} else {
+					nodeCurr->l = 1;
+					continue;
+				}
+			} else {
+				nodeCurr->l = 1;
+				continue;
+			}
+		} else if (!nodeCurr->t) {
+			if (cy > 0) {
+				SDL_Color colorNext;
+				canvasGetColor(c, cx, cy - 1, &colorNext);
+				if (colorNext.r == color.r
+				 && colorNext.g == color.g
+				 && colorNext.b == color.b
+				 && colorNext.a == color.a
+				 && !pixelArrayHas(pa, c->x + cx, c->y + cy - 1)) {
+					--cy;
+				} else {
+					nodeCurr->t = 1;
+					continue;
+				}
+			} else {
+				nodeCurr->t = 1;
+				continue;
+			}
+		} else if (!nodeCurr->r) {
+			if (cx < c->w - 1) {
+				SDL_Color colorNext;
+				canvasGetColor(c, cx + 1, cy, &colorNext);
+				if (colorNext.r == color.r
+				 && colorNext.g == color.g
+				 && colorNext.b == color.b
+				 && colorNext.a == color.a
+				 && !pixelArrayHas(pa, c->x + cx + 1, c->y + cy)) {
+					++cx;
+				} else {
+					nodeCurr->r = 1;
+					continue;
+				}
+			} else {
+				nodeCurr->r = 1;
+				continue;
+			}
+		} else if (!nodeCurr->b) {
+			if (cy < c->h - 1) {
+				SDL_Color colorNext;
+				canvasGetColor(c, cx, cy + 1, &colorNext);
+				if (colorNext.r == color.r
+				 && colorNext.g == color.g
+				 && colorNext.b == color.b
+				 && colorNext.a == color.a
+				 && !pixelArrayHas(pa, c->x + cx, c->y + cy + 1)) {
+					++cy;
+				} else {
+					nodeCurr->b = 1;
+					continue;
+				}
+			} else {
+				nodeCurr->b = 1;
+				continue;
+			}
+		} else {
+			struct pixel pixPrev = pa->array[indexPrev];
+			struct dirsNode *nodePrev = nodes.array + indexPrev;
+			if (c->x + cx + 1 == pixPrev.x) {
+				nodePrev->l = 1;
+			} else if (c->y + cy + 1 == pixPrev.y) {
+				nodePrev->t = 1;
+			} else if (c->x + cx - 1 == pixPrev.x) {
+				nodePrev->r = 1;
+			} else if (c->y + cy - 1 == pixPrev.y) {
+				nodePrev->b = 1;
+			} else {
+				goto cleanup;
+			}
+			cx = pixPrev.x - c->x;
+			cy = pixPrev.y - c->y;
+			indexCurr = indexPrev;
+			indexPrev = nodePrev->indexPrev;
+			continue;
+		}
+		struct pixel pix = {c->x + cx, c->y + cy};
+		struct dirsNode nodeNext = {indexCurr, 0, 0, 0, 0};
+		indexPrev = indexCurr;
+		indexCurr = nodes.size;
+		pixelArrayAppend(pa, pix);
+		if (nodes.size * sizeof (struct dirsNode) == nodes.memlen) {
+			if (!allocDouble(
+					&nodes.array, &nodes.memlen,
+					sizeof (struct dirsNode)
+					)) {
+				goto cleanup;
+			}
+		}
+		nodes.array[nodes.size++] = nodeNext;
+	}
+
+	flag = 1;
+cleanup:
+	free(nodes.array);
+	return flag;
+}
+
 int pixelArrayReset(struct pixelArray *pa)
 {
 	int flag = 0;
@@ -1583,13 +1740,38 @@ E_SELECT_fd:
 					break;
 				case C_FILL:
 					switch (e->key.keysym.sym) {
+						int mx, my;
+						int easelX, easelY;
+						struct canvasArray *ca;
+						struct canvas *c;
+						struct pixelArray *pa;
+						SDL_Color color;
 						case SDLK_f:
-							break;
+							color = state.colors.f;
+							goto C_FILL_fdsa;
 						case SDLK_d:
-							break;
+							color = state.colors.d;
+							goto C_FILL_fdsa;
 						case SDLK_s:
-							break;
+							color = state.colors.s;
+							goto C_FILL_fdsa;
 						case SDLK_a:
+							color = state.colors.a;
+							goto C_FILL_fdsa;
+C_FILL_fdsa:
+							SDL_GetMouseState(&mx, &my);
+							easelX = TO_COORD_EASEL_X(mx);
+							easelY = TO_COORD_EASEL_Y(my);
+							ca = (state.canvasSel->size == 0)
+								? state.canvasArr
+								: state.canvasSel;
+							c = canvasArrayFind(ca, easelX, easelY);
+							if (!c)
+								goto cleanupNoError;
+							pa = pixelArrayNew();
+							pixelArrayFill(pa, c, easelX, easelY);
+							pixelArrayDo(pa, ca, color);
+							pixelArrayFree(pa);
 							break;
 						default:
 							break;
