@@ -60,6 +60,14 @@ struct pixelArray {
 	struct pixel *array;
 };
 
+struct pixelMask {
+	int x;
+	int y;
+	int w;
+	int h;
+	Uint8 *array;
+};
+
 struct {
 
 	int quit;
@@ -953,6 +961,172 @@ cleanup:
 	return flag;
 }
 
+struct pixelMask *pixelMaskNew(int x, int y, int w, int h)
+{
+	if (w < 1 || h < 1)
+		return NULL;
+	struct pixelMask *pm = malloc(sizeof (struct pixelMask));
+	pm->x = x;
+	pm->y = y;
+	pm->w = w;
+	pm->h = h;
+	pm->array = malloc(w * h * sizeof (Uint8));
+	if (!pm->array) {
+		free(pm);
+		return NULL;
+	}
+	for (int i = 0; i < pm->w * pm->h; ++i) {
+		pm->array[i] = 0;
+	}
+	return pm;
+}
+
+int pixelMaskFree(struct pixelMask *pm)
+{
+	int flag = 0;
+	if (!pm)
+		goto cleanup;
+
+	free(pm->array);
+	free(pm);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int pixelMaskFill(struct pixelMask *pm, struct canvas *c, int x, int y)
+{
+	int flag = 0;
+	if (!pm || !c)
+		goto cleanup;
+
+	int cx = x - c->x;
+	int cy = y - c->y;
+	SDL_Color color;
+	canvasGetColor(c, cx, cy, &color);
+
+	int done = 0;
+	while (!done) {
+		Uint8 *pix = pm->array + pm->w * cy + cx;
+		SDL_Color colorNext;
+		if (cx != 0) {
+			canvasGetColor(c, cx - 1, cy, &colorNext);
+			if (
+				(*pix & 0x01) == 0
+				&& *(pix - 1) == 0
+				&& colorNext.r == color.r
+				&& colorNext.g == color.g
+				&& colorNext.b == color.b
+				&& colorNext.a == color.a
+			   ) {
+				*(pix    ) |= 0x01;
+				*(pix - 1) |= 0x10;
+				--cx;
+				continue;
+			}
+		}
+		if (cy != 0) {
+			canvasGetColor(c, cx, cy - 1, &colorNext);
+			if (
+				(*pix & 0x02) == 0
+				&& *(pix - pm->w) == 0
+				&& colorNext.r == color.r
+				&& colorNext.g == color.g
+				&& colorNext.b == color.b
+				&& colorNext.a == color.a
+			   ) {
+				*(pix       ) |= 0x03;
+				*(pix - pm->w) |= 0x20;
+				--cy;
+				continue;
+			}
+		}
+		if (cx != c->w - 1) {
+			canvasGetColor(c, cx + 1, cy, &colorNext);
+			if (
+				(*pix & 0x04) == 0
+				&& *(pix + 1) == 0
+				&& colorNext.r == color.r
+				&& colorNext.g == color.g
+				&& colorNext.b == color.b
+				&& colorNext.a == color.a
+			   ) {
+				*(pix    ) |= 0x07;
+				*(pix + 1) |= 0x40;
+				++cx;
+				continue;
+			}
+		}
+		if (cy != c->h - 1) {
+			canvasGetColor(c, cx, cy + 1, &colorNext);
+			if (
+				(*pix & 0x08) == 0
+				&& *(pix + pm->w) == 0
+				&& colorNext.r == color.r
+				&& colorNext.g == color.g
+				&& colorNext.b == color.b
+				&& colorNext.a == color.a
+			   ) {
+				*(pix       ) |= 0x0f;
+				*(pix + pm->w) |= 0x80;
+				++cy;
+				continue;
+			}
+		}
+		*pix |= 0x0f;
+		switch (*pix & 0xf0) {
+			case 0x10:
+				++cx;
+				continue;
+			case 0x20:
+				++cy;
+				continue;
+			case 0x40:
+				--cx;
+				continue;
+			case 0x80:
+				--cy;
+				continue;
+			default:
+				done = 1;
+				continue;
+		}
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
+{
+	int flag = 0;
+	if (!pm || !ca)
+		goto cleanup;
+
+	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
+
+	for (int i = 0; i < pm->h; ++i) {
+		for (int j = 0; j < pm->w; ++j) {
+			if (!pm->array[i * pm->w + j])
+				continue;
+			struct canvas *c = canvasArrayFind(ca, pm->x + j, pm->y + i);
+			if (!c)
+				continue;
+			SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
+			SDL_SetRenderTarget(ren, c->tex);
+			SDL_RenderDrawPoint(ren, j, i);
+			SDL_RenderDrawPoint(c->ren, j, i);
+		}
+	}
+	SDL_SetRenderTarget(ren, NULL);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int setDrag(enum ActionDrag action)
 {
 	int flag = 0;
@@ -1705,7 +1879,7 @@ E_SELECT_fd:
 						int easelX, easelY;
 						struct canvasArray *ca;
 						struct canvas *c;
-						struct pixelArray *pa;
+						struct pixelMask *pm;
 						SDL_Color color;
 						case SDLK_f:
 							color = state.colors.f;
@@ -1729,10 +1903,13 @@ C_FILL_fdsa:
 							c = canvasArrayFind(ca, easelX, easelY);
 							if (!c)
 								goto cleanupNoError;
-							pa = pixelArrayNew();
-							pixelArrayFill(pa, c, easelX, easelY);
-							pixelArrayDo(pa, ca, color);
-							pixelArrayFree(pa);
+							ca = canvasArrayNew();
+							canvasArrayAppend(ca, c);
+							pm = pixelMaskNew(c->x, c->y, c->w, c->h);
+							pixelMaskFill(pm, c, easelX, easelY);
+							pixelMaskDo(pm, ca, color);
+							pixelMaskFree(pm);
+							canvasArrayFree(ca);
 							break;
 						default:
 							break;
