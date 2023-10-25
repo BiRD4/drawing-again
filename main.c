@@ -76,6 +76,14 @@ struct {
 	int space;
 
 	struct {
+		struct {
+			Uint32 type;
+			Sint32 x;
+			Sint32 y;
+		} cursorMotion;
+	} event;
+
+	struct {
 		int x;
 		int y;
 		int s;
@@ -151,6 +159,9 @@ struct {
 
 } state = {
 	0, 0, 0, 0,
+	{
+		{0, 0, 0}
+	},
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL,
 	{
@@ -238,6 +249,10 @@ int init()
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE
 			);
 	if (ren == NULL)
+		goto cleanup;
+
+	state.event.cursorMotion.type = SDL_RegisterEvents(1);
+	if (state.event.cursorMotion.type == ((Uint32) -1))
 		goto cleanup;
 
 	state.drag.drawPixel.pixels = pixelArrayNew();
@@ -2059,9 +2074,25 @@ cleanup:
 
 int eventMouseMotion(SDL_Event *e)
 {
-	// TODO create event for cursor moving on easel scale
-	// and separate out corresponding drag actions into new event handler function
 	int flag = 0;
+
+	if (
+		TO_COORD_EASEL_X(e->motion.x) !=
+		TO_COORD_EASEL_X(e->motion.x - e->motion.xrel)
+		|| TO_COORD_EASEL_Y(e->motion.y) !=
+		   TO_COORD_EASEL_Y(e->motion.y - e->motion.yrel)
+	   ) {
+		state.event.cursorMotion.x = TO_COORD_EASEL_X(e->motion.x);
+		state.event.cursorMotion.y = TO_COORD_EASEL_Y(e->motion.y);
+		SDL_Event event;
+		Uint8 *ptr = &event;
+		for (int i = 0; i < sizeof (event); ++i)
+			ptr[i] = 0;
+		event.user.type = state.event.cursorMotion.type;
+		event.user.data1 = &state.event.cursorMotion.x;
+		event.user.data2 = &state.event.cursorMotion.y;
+		SDL_PushEvent(&event);
+	}
 
 	switch (state.drag.action) {
 		case D_NONE:
@@ -2113,14 +2144,32 @@ int eventMouseMotion(SDL_Event *e)
 				easelFix();
 				break;
 			}
+		default:
+			break;
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int eventCursorMotion(SDL_Event *e)
+{
+	int flag = 0;
+
+	Sint32 cursorX = *((Sint32 *) e->user.data1);
+	Sint32 cursorY = *((Sint32 *) e->user.data2);
+
+	switch (state.drag.action) {
 		case D_CANVASNEW:
 			{
 				MAP_CANVASES(state.canvasSel, i, c) {
 					if (!c->isSel) {
-						canvasMove(c, c->x, c->y,
-								TO_COORD_EASEL_X(e->motion.x) - c->x,
-								TO_COORD_EASEL_Y(e->motion.y) - c->y
-							  );
+						canvasMove(
+							c, c->x, c->y,
+							cursorX - c->x,
+							cursorY - c->y
+							);
 					}
 				}
 				break;
@@ -2129,20 +2178,20 @@ int eventMouseMotion(SDL_Event *e)
 			{
 				MAP_CANVASES(state.canvasSel, i, c) {
 					int x = state.drag.canvasTransform.setX
-						? TO_COORD_EASEL_X(e->motion.x)
-						    + state.drag.canvasTransform.offX[i]
+						? cursorX
+						+ state.drag.canvasTransform.offX[i]
 						: c->x;
 					int y = state.drag.canvasTransform.setY
-						? TO_COORD_EASEL_Y(e->motion.y)
-						    + state.drag.canvasTransform.offY[i]
+						? cursorY
+						+ state.drag.canvasTransform.offY[i]
 						: c->y;
 					int w = state.drag.canvasTransform.setW
-						? TO_COORD_EASEL_X(e->motion.x) - c->x
-						    + state.drag.canvasTransform.offW[i]
+						? cursorX - c->x
+						+ state.drag.canvasTransform.offW[i]
 						: c->w;
 					int h = state.drag.canvasTransform.setH
-						? TO_COORD_EASEL_Y(e->motion.y) - c->y
-						    + state.drag.canvasTransform.offH[i]
+						? cursorY - c->y
+						+ state.drag.canvasTransform.offH[i]
 						: c->h;
 					canvasMove(c, x, y, w, h);
 				}
@@ -2155,8 +2204,8 @@ int eventMouseMotion(SDL_Event *e)
 						state.drag.drawPixel.pixels,
 						state.drag.drawPixel.initX,
 						state.drag.drawPixel.initY,
-						TO_COORD_EASEL_X(e->motion.x),
-						TO_COORD_EASEL_Y(e->motion.y)
+						cursorX,
+						cursorY
 					      );
 				pixelArrayDo(
 						state.drag.drawPixel.pixels,
@@ -2164,56 +2213,54 @@ int eventMouseMotion(SDL_Event *e)
 						? state.canvasArr : state.canvasSel,
 						state.drag.drawPixel.color
 					    );
-				state.drag.drawPixel.initX = TO_COORD_EASEL_X(e->motion.x);
-				state.drag.drawPixel.initY = TO_COORD_EASEL_Y(e->motion.y);
+				state.drag.drawPixel.initX = cursorX;
+				state.drag.drawPixel.initY = cursorY;
 				break;
 			}
 		case D_DRAWLINE:
 			{
-				int easelX = TO_COORD_EASEL_X(e->motion.x);
-				int easelY = TO_COORD_EASEL_Y(e->motion.y);
 				pixelArrayReset(state.drag.drawLine.pixels);
 				pixelArrayLine(
 						state.drag.drawLine.pixels,
 						state.drag.drawLine.initX,
 						state.drag.drawLine.initY,
-						easelX, easelY
+						cursorX, cursorY
 					      );
 				canvasClear(state.drag.drawLine.preview);
-				if (easelX >= state.drag.drawLine.initX) {
-					if (easelY >= state.drag.drawLine.initY) {
+				if (cursorX >= state.drag.drawLine.initX) {
+					if (cursorY >= state.drag.drawLine.initY) {
 						canvasMove(
 								state.drag.drawLine.preview,
 								state.drag.drawLine.initX,
 								state.drag.drawLine.initY,
-								easelX - state.drag.drawLine.initX + 1,
-								easelY - state.drag.drawLine.initY + 1
+								cursorX - state.drag.drawLine.initX + 1,
+								cursorY - state.drag.drawLine.initY + 1
 							  );
 					} else {
 						canvasMove(
 								state.drag.drawLine.preview,
 								state.drag.drawLine.initX,
-								easelY,
-								easelX - state.drag.drawLine.initX + 1,
-								state.drag.drawLine.initY - easelY + 1
+								cursorY,
+								cursorX - state.drag.drawLine.initX + 1,
+								state.drag.drawLine.initY - cursorY + 1
 							  );
 					}
 				} else {
-					if (easelY >= state.drag.drawLine.initY) {
+					if (cursorY >= state.drag.drawLine.initY) {
 						canvasMove(
 								state.drag.drawLine.preview,
-								easelX,
+								cursorX,
 								state.drag.drawLine.initY,
-								state.drag.drawLine.initX - easelX + 1,
-								easelY - state.drag.drawLine.initY + 1
+								state.drag.drawLine.initX - cursorX + 1,
+								cursorY - state.drag.drawLine.initY + 1
 							  );
 					} else {
 						canvasMove(
 								state.drag.drawLine.preview,
-								easelX,
-								easelY,
-								state.drag.drawLine.initX - easelX + 1,
-								state.drag.drawLine.initY - easelY + 1
+								cursorX,
+								cursorY,
+								state.drag.drawLine.initX - cursorX + 1,
+								state.drag.drawLine.initY - cursorY + 1
 							  );
 					}
 				}
@@ -2223,7 +2270,7 @@ int eventMouseMotion(SDL_Event *e)
 						state.drag.drawLine.previewPixels,
 						state.drag.drawLine.initX,
 						state.drag.drawLine.initY,
-						easelX, easelY
+						cursorX, cursorY
 					      );
 				pixelArrayDo(
 						state.drag.drawLine.previewPixels,
@@ -2274,6 +2321,12 @@ int eventDo(SDL_Event *e)
 			case SDL_RENDER_DEVICE_RESET:
 				if (!eventRender(e))
 					goto cleanup;
+				break;
+			case SDL_USEREVENT:
+				if (e->user.type == state.event.cursorMotion.type) {
+					if (!eventCursorMotion(e))
+						goto cleanup;
+				}
 				break;
 			default:
 				break;
