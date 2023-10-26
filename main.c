@@ -1472,24 +1472,24 @@ int frameDo()
 		MAP_CANVASES(state.canvasArr, i, c) {
 			int tw, th;
 			SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-			SDL_Rect src = {
+			SDL_Rect rectSrc = {
 				0, 0,
 				(c->w >= tw) ? tw : c->w,
 				(c->h >= th) ? th : c->h
 			};
-			SDL_Rect dst = {
+			SDL_Rect rectDst = {
 				TO_COORD_SCREEN_X(c->x),
 				TO_COORD_SCREEN_Y(c->y),
-				state.easel.s * src.w,
-				state.easel.s * src.h
+				state.easel.s * rectSrc.w,
+				state.easel.s * rectSrc.h
 			};
-			SDL_Rect border = {
-				dst.x - 1, dst.y - 1,
+			SDL_Rect rectBorder = {
+				rectDst.x - 1, rectDst.y - 1,
 				state.easel.s * c->w + 2,
 				state.easel.s * c->h + 2
 			};
 
-			SDL_RenderCopy(ren, c->tex, &src, &dst);
+			SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
 
 			if (c->isSel)
 				SDL_SetRenderDrawColor(
@@ -1501,7 +1501,7 @@ int frameDo()
 						ren, 127, 127, 127,
 						SDL_ALPHA_OPAQUE
 						);
-			SDL_RenderDrawRect(ren, &border);
+			SDL_RenderDrawRect(ren, &rectBorder);
 		}
 	}
 
@@ -1509,19 +1509,19 @@ int frameDo()
 		struct canvas *c = state.drag.drawLine.preview;
 		int tw, th;
 		SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-		SDL_Rect src = {
+		SDL_Rect rectSrc = {
 			0, 0,
 			(c->w >= tw) ? tw : c->w,
 			(c->h >= th) ? th : c->h
 		};
-		SDL_Rect dst = {
+		SDL_Rect rectDst = {
 			TO_COORD_SCREEN_X(c->x),
 			TO_COORD_SCREEN_Y(c->y),
-			state.easel.s * src.w,
-			state.easel.s * src.h
+			state.easel.s * rectSrc.w,
+			state.easel.s * rectSrc.h
 		};
 
-		SDL_RenderCopy(ren, c->tex, &src, &dst);
+		SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
 	}
 
 	int cursorX;
@@ -1532,14 +1532,14 @@ int frameDo()
 	} else {
 		SDL_GetMouseState(&cursorX, &cursorY);
 	}
-	SDL_Rect cursor = {
+	SDL_Rect rectCursor = {
 		TO_COORD_SCREEN_X(TO_COORD_EASEL_X(cursorX)),
 		TO_COORD_SCREEN_Y(TO_COORD_EASEL_Y(cursorY)),
 		state.easel.s,
 		state.easel.s
 	};
 	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawRect(ren, &cursor);
+	SDL_RenderDrawRect(ren, &rectCursor);
 
 	if (state.debug) {
 		SDL_SetRenderDrawColor(ren, 255, 0, 0, SDL_ALPHA_OPAQUE);
@@ -1553,13 +1553,13 @@ int frameDo()
 			MAP_CANVASES(state.canvasArr, i, c) {
 				int tw, th;
 				SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-				SDL_Rect texture = {
+				SDL_Rect rectTexture = {
 					TO_COORD_SCREEN_X(c->x),
 					TO_COORD_SCREEN_Y(c->y),
 					state.easel.s * tw,
 					state.easel.s * th
 				};
-				SDL_RenderDrawRect(ren, &texture);
+				SDL_RenderDrawRect(ren, &rectTexture);
 			}
 		}
 
@@ -1567,18 +1567,18 @@ int frameDo()
 			struct canvas *c = state.drag.drawLine.preview;
 			int tw, th;
 			SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-			SDL_Rect texture = {
+			SDL_Rect rectTexture = {
 				TO_COORD_SCREEN_X(c->x),
 				TO_COORD_SCREEN_Y(c->y),
 				state.easel.s * tw,
 				state.easel.s * th
 			};
-			SDL_RenderDrawRect(ren, &texture);
+			SDL_RenderDrawRect(ren, &rectTexture);
 		}
 
 		SDL_SetRenderDrawColor(ren, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
-		SDL_Rect bounds = {
+		SDL_Rect rectBounds = {
 			TO_COORD_SCREEN_X(state.easel.minX),
 			TO_COORD_SCREEN_Y(state.easel.minY),
 			TO_COORD_SCREEN_X(state.easel.maxX)
@@ -1586,7 +1586,7 @@ int frameDo()
 			TO_COORD_SCREEN_Y(state.easel.maxY)
 				- TO_COORD_SCREEN_Y(state.easel.minY)
 		};
-		SDL_RenderDrawRect(ren, &bounds);
+		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
 	SDL_RenderPresent(ren);
