@@ -1589,6 +1589,19 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
+	SDL_Color colors[4] = {state.colors.a, state.colors.s, state.colors.d, state.colors.f};
+
+	SDL_Rect rectColors = {0, 0, 129, 33};
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderFillRect(ren, &rectColors);
+
+	SDL_Rect rectColor = {0, 0, 32, 32};
+	for (int i = 0; i < 4; ++i) {
+		SDL_SetRenderDrawColor(ren, colors[i].r, colors[i].g, colors[i].b, colors[i].a);
+		SDL_RenderFillRect(ren, &rectColor);
+		rectColor.x += 32;
+	}
+
 	SDL_RenderPresent(ren);
 
 	flag = 1;
