@@ -1287,31 +1287,19 @@ int setDrag(enum ActionDrag action)
 					canvasArrayAppend(state.canvasSel, c);
 				}
 				int *newArray;
-				newArray = realloc(
-						state.drag.canvasTransform.offX,
-						(state.canvasSel->size * sizeof (int *))
-						);
+				newArray = calloc(state.canvasSel->size, sizeof (int *));
 				if (!newArray)
 					goto cleanup;
 				state.drag.canvasTransform.offX = newArray;
-				newArray = realloc(
-						state.drag.canvasTransform.offY,
-						(state.canvasSel->size * sizeof (int *))
-						);
+				newArray = calloc(state.canvasSel->size, sizeof (int *));
 				if (!newArray)
 					goto cleanup;
 				state.drag.canvasTransform.offY = newArray;
-				newArray = realloc(
-						state.drag.canvasTransform.offW,
-						(state.canvasSel->size * sizeof (int *))
-						);
+				newArray = calloc(state.canvasSel->size, sizeof (int *));
 				if (!newArray)
 					goto cleanup;
 				state.drag.canvasTransform.offW = newArray;
-				newArray = realloc(
-						state.drag.canvasTransform.offH,
-						(state.canvasSel->size * sizeof (int *))
-						);
+				newArray = calloc(state.canvasSel->size, sizeof (int *));
 				if (!newArray)
 					goto cleanup;
 				state.drag.canvasTransform.offH = newArray;
