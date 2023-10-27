@@ -713,7 +713,7 @@ cleanup:
 	return flag;
 }
 
-int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2)
+int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2, int skipFirst)
 {
 	int flag = 0;
 	if (!pa)
@@ -782,7 +782,8 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 	di = i2 - i1;
 	dj = j2 - j1;
 
-	for (int i = 0; i <= di; ++i) {
+	int start = !skipFirst ? 0 : 1;
+	for (int i = start; i <= di; ++i) {
 		int j = round(i * dj / (double) di);
 		struct pixel pix;
 		if (!swap) {
@@ -2383,8 +2384,7 @@ int eventCursorMotion(SDL_Event *e)
 						state.drag.drawPixel.pixels,
 						state.drag.drawPixel.initX,
 						state.drag.drawPixel.initY,
-						cursorX,
-						cursorY
+						cursorX, cursorY, 1
 					      );
 				pixelArrayDo(
 						state.drag.drawPixel.pixels,
@@ -2403,7 +2403,7 @@ int eventCursorMotion(SDL_Event *e)
 						state.drag.drawLine.pixels,
 						state.drag.drawLine.initX,
 						state.drag.drawLine.initY,
-						cursorX, cursorY
+						cursorX, cursorY, 0
 					      );
 				canvasClear(state.drag.drawLine.preview);
 				if (cursorX >= state.drag.drawLine.initX) {
@@ -2449,7 +2449,7 @@ int eventCursorMotion(SDL_Event *e)
 						state.drag.drawLine.previewPixels,
 						state.drag.drawLine.initX,
 						state.drag.drawLine.initY,
-						cursorX, cursorY
+						cursorX, cursorY, 0
 					      );
 				pixelArrayDo(
 						state.drag.drawLine.previewPixels,
