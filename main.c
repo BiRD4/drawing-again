@@ -140,6 +140,8 @@ struct {
 		struct {
 			int initX;
 			int initY;
+			int currX;
+			int currY;
 			enum Key key;
 			SDL_Color color;
 			struct pixelArray *pixels;
@@ -177,7 +179,7 @@ struct {
 		{0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, NULL, NULL, NULL, NULL},
 		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
-		{0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL},
+		{0, 0, 0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL},
 		{0, 0, 0, 0}
 	},
 	{
@@ -1208,6 +1210,13 @@ int setDrag(enum ActionDrag action)
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
+			pixelArrayLine(
+					state.drag.drawLine.pixels,
+					state.drag.drawLine.initX,
+					state.drag.drawLine.initY,
+					state.drag.drawLine.currX,
+					state.drag.drawLine.currY, 0
+				      );
 			pixelArrayDo(
 					state.drag.drawLine.pixels,
 					(state.canvasSel->size == 0)
@@ -2398,13 +2407,8 @@ int eventCursorMotion(SDL_Event *e)
 			}
 		case D_DRAWLINE:
 			{
-				pixelArrayReset(state.drag.drawLine.pixels);
-				pixelArrayLine(
-						state.drag.drawLine.pixels,
-						state.drag.drawLine.initX,
-						state.drag.drawLine.initY,
-						cursorX, cursorY, 0
-					      );
+				state.drag.drawLine.currX = cursorX;
+				state.drag.drawLine.currY = cursorY;
 				canvasClear(state.drag.drawLine.preview);
 				if (cursorX >= state.drag.drawLine.initX) {
 					if (cursorY >= state.drag.drawLine.initY) {
