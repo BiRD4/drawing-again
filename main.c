@@ -2018,6 +2018,9 @@ C_FILL_fdsa:
 			break;
 		case S_PICK:
 			switch (e->key.keysym.sym) {
+				enum ModePick mode;
+				SDL_Color tmp;
+				SDL_Color *swap;
 				case SDLK_t:
 					if (!state.space) {
 						state.blend = 1;
@@ -2028,16 +2031,49 @@ C_FILL_fdsa:
 					}
 					break;
 				case SDLK_r:
-					setModePick(P_F);
-					break;
+					mode = P_F;
+					tmp = state.colors.f;
+					swap = &state.colors.f;
+					goto S_PICK_fdsa;
 				case SDLK_e:
-					setModePick(P_D);
-					break;
+					mode = P_D;
+					tmp = state.colors.d;
+					swap = &state.colors.d;
+					goto S_PICK_fdsa;
 				case SDLK_w:
-					setModePick(P_S);
-					break;
+					mode = P_S;
+					tmp = state.colors.s;
+					swap = &state.colors.s;
+					goto S_PICK_fdsa;
 				case SDLK_q:
-					setModePick(P_A);
+					mode = P_A;
+					tmp = state.colors.a;
+					swap = &state.colors.a;
+					goto S_PICK_fdsa;
+S_PICK_fdsa:
+					if (state.space) {
+						switch (state.modePick) {
+							case P_F:
+								*swap = state.colors.f;
+								state.colors.f = tmp;
+								break;
+							case P_D:
+								*swap = state.colors.d;
+								state.colors.d = tmp;
+								break;
+							case P_S:
+								*swap = state.colors.s;
+								state.colors.s = tmp;
+								break;
+							case P_A:
+								*swap = state.colors.a;
+								state.colors.a = tmp;
+								break;
+							default:
+								break;
+						}
+					}
+					setModePick(mode);
 					break;
 				case SDLK_f:
 					state.drag.pick.pickRed = 1;
