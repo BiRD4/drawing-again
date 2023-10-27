@@ -74,6 +74,7 @@ struct {
 	int warp;
 	int debug;
 	int space;
+	int blend;
 
 	struct {
 		struct {
@@ -168,7 +169,7 @@ struct {
 	struct canvasArray *canvasSel;
 
 } state = {
-	0, 0, 0, 0,
+	0, 0, 0, 0, 1,
 	{
 		{0, 0, 0}
 	},
@@ -261,6 +262,7 @@ int init()
 			);
 	if (ren == NULL)
 		goto cleanup;
+	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 
 	state.event.cursorMotion.type = SDL_RegisterEvents(1);
 	if (state.event.cursorMotion.type == ((Uint32) -1))
@@ -388,9 +390,11 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 			);
 	if (!c->surf)
 		goto cleanup_surf;
+	SDL_SetSurfaceBlendMode(c->surf, SDL_BLENDMODE_NONE);
 	c->ren = SDL_CreateSoftwareRenderer(c->surf);
 	if (!c->ren)
 		goto cleanup_ren;
+	SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
 	return c;
 
 cleanup_ren:
@@ -520,9 +524,11 @@ int canvasFix(struct canvas *c)
 				);
 		if (!newSurf)
 			goto cleanup;
+		SDL_SetSurfaceBlendMode(c->surf, SDL_BLENDMODE_NONE);
 		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
 		if (!newRen)
 			goto cleanup;
+		SDL_SetRenderDrawBlendMode(newRen, SDL_BLENDMODE_BLEND);
 		SDL_BlitSurface(c->surf, NULL, newSurf, NULL);
 		SDL_DestroyRenderer(c->ren);
 		SDL_FreeSurface(c->surf);
@@ -976,6 +982,10 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
+		if (state.blend)
+			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
+		else
+			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 		SDL_SetRenderTarget(ren, c->tex);
 		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
@@ -1141,6 +1151,10 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 			struct canvas *c = canvasArrayFind(ca, pm->x + j, pm->y + i);
 			if (!c)
 				continue;
+			if (state.blend)
+				SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
+			else
+				SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
 			SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 			SDL_SetRenderTarget(ren, c->tex);
 			SDL_RenderDrawPoint(ren, j, i);
@@ -1621,6 +1635,8 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
+	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+
 	SDL_Color colors[4] = {state.colors.a, state.colors.s, state.colors.d, state.colors.f};
 
 	SDL_Rect rectColors = {0, 0, 129, 33};
@@ -1633,6 +1649,9 @@ int frameDo()
 		SDL_RenderFillRect(ren, &rectColor);
 		rectColor.x += 32;
 	}
+
+	if (!state.blend)
+		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 
 	SDL_RenderPresent(ren);
 
@@ -1984,6 +2003,15 @@ C_FILL_fdsa:
 			break;
 		case S_PICK:
 			switch (e->key.keysym.sym) {
+				case SDLK_t:
+					if (!state.space) {
+						state.blend = 1;
+						SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+					} else {
+						state.blend = 0;
+						SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
+					}
+					break;
 				case SDLK_r:
 					setModePick(P_F);
 					break;
