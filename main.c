@@ -94,10 +94,11 @@ struct {
 		int maxY;
 	} easel;
 
-	// TODO add S_PICK and C_SELECT
-	enum Scope {S_EASEL, S_CANVAS} scope;
+	// TODO add C_SELECT
+	enum Scope {S_EASEL, S_CANVAS, S_PICK} scope;
 	enum ModeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
 	enum ModeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
+	enum ModePick {P_F, P_D, P_S, P_A} modePick;
 
 	struct {
 		enum ActionDrag {
@@ -106,7 +107,8 @@ struct {
 			D_CANVASNEW,
 			D_CANVASTRANSFORM,
 			D_DRAWPIXEL,
-			D_DRAWLINE
+			D_DRAWLINE,
+			D_PICK
 		} action;
 		struct {
 			int offX;
@@ -145,6 +147,12 @@ struct {
 			struct canvasArray *previewArr;
 			struct pixelArray *previewPixels;
 		} drawLine;
+		struct {
+			int pickRed;
+			int pickGreen;
+			int pickBlue;
+			int pickAlpha;
+		} pick;
 	} drag;
 
 	struct {
@@ -163,13 +171,14 @@ struct {
 		{0, 0, 0}
 	},
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
-	S_EASEL, E_EDIT, C_PIXEL,
+	S_EASEL, E_EDIT, C_PIXEL, P_F,
 	{
 		D_NONE,
 		{0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, NULL, NULL, NULL, NULL},
 		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
-		{0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL}
+		{0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL},
+		{0, 0, 0, 0}
 	},
 	{
 		{255,   0,   0, 255},
@@ -1205,6 +1214,12 @@ int setDrag(enum ActionDrag action)
 					state.drag.drawLine.color
 				    );
 			break;
+		case D_PICK:
+			state.drag.pick.pickRed = 0;
+			state.drag.pick.pickGreen = 0;
+			state.drag.pick.pickBlue = 0;
+			state.drag.pick.pickAlpha = 0;
+			break;
 		default:
 			break;
 	}
@@ -1334,6 +1349,8 @@ int setDrag(enum ActionDrag action)
 				pixelArrayReset(state.drag.drawLine.previewPixels);
 				break;
 			}
+		case D_PICK:
+			break;
 		default:
 			break;
 	}
@@ -1399,6 +1416,19 @@ cleanup:
 	return flag;
 }
 
+int setModePick(enum ModePick mode)
+{
+	int flag = 0;
+
+	if (!resetDrag())
+		goto cleanup;
+	state.modePick = mode;
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int setSpace(int space)
 {
 	int flag = 0;
@@ -1424,6 +1454,8 @@ int setSpace(int space)
 				break;
 			case D_DRAWLINE:
 				break;
+			case D_PICK:
+				break;
 			default:
 				break;
 		}
@@ -1447,6 +1479,8 @@ int setSpace(int space)
 			case D_DRAWPIXEL:
 				break;
 			case D_DRAWLINE:
+				break;
+			case D_PICK:
 				break;
 			default:
 				break;
@@ -1637,6 +1671,9 @@ int eventKeyDown(SDL_Event *e)
 			goto cleanupNoError;
 		case SDLK_c:
 			setScope(S_CANVAS);
+			goto cleanupNoError;
+		case SDLK_x:
+			setScope(S_PICK);
 			goto cleanupNoError;
 		case SDLK_g:
 			setDrag(D_PANZOOM);
@@ -1947,6 +1984,44 @@ C_FILL_fdsa:
 					break;
 			}
 			break;
+		case S_PICK:
+			switch (e->key.keysym.sym) {
+				case SDLK_r:
+					setModePick(P_F);
+					break;
+				case SDLK_e:
+					setModePick(P_D);
+					break;
+				case SDLK_w:
+					setModePick(P_S);
+					break;
+				case SDLK_q:
+					setModePick(P_A);
+					break;
+				case SDLK_f:
+					state.drag.pick.pickRed = 1;
+					if (state.drag.action != D_PICK)
+						setDrag(D_PICK);
+					break;
+				case SDLK_d:
+					state.drag.pick.pickGreen = 1;
+					if (state.drag.action != D_PICK)
+						setDrag(D_PICK);
+					break;
+				case SDLK_s:
+					state.drag.pick.pickBlue = 1;
+					if (state.drag.action != D_PICK)
+						setDrag(D_PICK);
+					break;
+				case SDLK_a:
+					state.drag.pick.pickAlpha = 1;
+					if (state.drag.action != D_PICK)
+						setDrag(D_PICK);
+					break;
+				default:
+					break;
+			}
+			break;
 		default:
 			break;
 	}
@@ -2078,6 +2153,40 @@ int eventKeyUp(SDL_Event *e)
 			break;
 		default:
 			break;
+		case S_PICK:
+			switch (e->key.keysym.sym) {
+				case SDLK_f:
+					state.drag.pick.pickRed = 0;
+					if (state.drag.pick.pickGreen == 0
+					 && state.drag.pick.pickBlue == 0
+					 && state.drag.pick.pickAlpha == 0)
+						setDrag(D_NONE);
+					break;
+				case SDLK_d:
+					state.drag.pick.pickGreen = 0;
+					if (state.drag.pick.pickRed == 0
+					 && state.drag.pick.pickBlue == 0
+					 && state.drag.pick.pickAlpha == 0)
+						setDrag(D_NONE);
+					break;
+				case SDLK_s:
+					state.drag.pick.pickBlue = 0;
+					if (state.drag.pick.pickRed == 0
+					 && state.drag.pick.pickGreen == 0
+					 && state.drag.pick.pickAlpha == 0)
+						setDrag(D_NONE);
+					break;
+				case SDLK_a:
+					state.drag.pick.pickAlpha = 0;
+					if (state.drag.pick.pickRed == 0
+					 && state.drag.pick.pickGreen == 0
+					 && state.drag.pick.pickBlue == 0)
+						setDrag(D_NONE);
+					break;
+				default:
+					break;
+			}
+			break;
 	}
 
 	flag = 1;
@@ -2157,6 +2266,63 @@ int eventMouseMotion(SDL_Event *e)
 				easelFix();
 				break;
 			}
+		case D_PICK:
+			switch (state.modePick) {
+				SDL_Color *color;
+				case P_F:
+					color = &state.colors.f;
+					goto D_PICK_fdsa;
+				case P_D:
+					color = &state.colors.d;
+					goto D_PICK_fdsa;
+				case P_S:
+					color = &state.colors.s;
+					goto D_PICK_fdsa;
+				case P_A:
+					color = &state.colors.a;
+					goto D_PICK_fdsa;
+D_PICK_fdsa:
+					if (state.drag.pick.pickRed) {
+						int newVal = color->r - e->motion.yrel;
+						if (newVal < 0)
+							color->r = 0;
+						else if (newVal > 255)
+							color->r = 255;
+						else
+							color->r = newVal;
+					}
+					if (state.drag.pick.pickGreen) {
+						int newVal = color->g - e->motion.yrel;
+						if (newVal < 0)
+							color->g = 0;
+						else if (newVal > 255)
+							color->g = 255;
+						else
+							color->g = newVal;
+					}
+					if (state.drag.pick.pickBlue) {
+						int newVal = color->b - e->motion.yrel;
+						if (newVal < 0)
+							color->b = 0;
+						else if (newVal > 255)
+							color->b = 255;
+						else
+							color->b = newVal;
+					}
+					if (state.drag.pick.pickAlpha) {
+						int newVal = color->a - e->motion.yrel;
+						if (newVal < 0)
+							color->a = 0;
+						else if (newVal > 255)
+							color->a = 255;
+						else
+							color->a = newVal;
+					}
+					break;
+				default:
+					break;
+			}
+			break;
 		default:
 			break;
 	}
