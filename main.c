@@ -407,9 +407,9 @@ int canvasDel(struct canvas *c)
 		goto cleanup;
 
 	if (canvasArrayHas(state.canvasArr, c))
-		canvasArrayRem(state.canvasArr, c);
+		canvasArrayRemove(state.canvasArr, c);
 	if (canvasArrayHas(state.canvasSel, c))
-		canvasArrayRem(state.canvasSel, c);
+		canvasArrayRemove(state.canvasSel, c);
 	SDL_DestroyTexture(c->tex);
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
@@ -610,7 +610,7 @@ cleanup:
 	return flag;
 }
 
-int canvasArrayRem(struct canvasArray *ca, struct canvas *c)
+int canvasArrayRemove(struct canvasArray *ca, struct canvas *c)
 {
 	int flag = 0;
 	if (!ca || !c || ca->size < 1)
@@ -1177,7 +1177,7 @@ int setDrag(enum ActionDrag action)
 				MAP_CANVASES(oldArray, i, c) {
 					if (!c->isSel) {
 						canvasFix(c);
-						canvasArrayRem(state.canvasSel, c);
+						canvasArrayRemove(state.canvasSel, c);
 					}
 				}
 				canvasArrayFree(oldArray);
@@ -1190,7 +1190,7 @@ int setDrag(enum ActionDrag action)
 				}
 				if (state.canvasSel->size == 1
 				&& !state.canvasSel->array[0]->isSel)
-					canvasArrayRem(
+					canvasArrayRemove(
 							state.canvasSel,
 							state.canvasSel->array[0]
 						      );
@@ -1825,7 +1825,7 @@ E_SELECT_fd:
 								}
 							} else {
 								if (c && c->isSel) {
-									canvasArrayRem(state.canvasSel, c);
+									canvasArrayRemove(state.canvasSel, c);
 									c->isSel = 0;
 								}
 							}
@@ -1835,7 +1835,7 @@ E_SELECT_fd:
 								struct canvasArray *oldArray =
 									canvasArrayCopy(state.canvasSel);
 								MAP_CANVASES(oldArray, i, c) {
-									canvasArrayRem(state.canvasSel, c);
+									canvasArrayRemove(state.canvasSel, c);
 									c->isSel = 0;
 								}
 								canvasArrayFree(oldArray);
