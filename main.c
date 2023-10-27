@@ -944,6 +944,21 @@ cleanup:
 	return flag;
 }
 
+int pixelArrayRemove(struct pixelArray *pa, int index)
+{
+	int flag = 0;
+	if (!pa || pa->size < 1)
+		goto cleanup;
+
+	--pa->size;
+	for (int i = index; i < pa->size; ++i)
+		pa->array[i] = pa->array[i + 1];
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int pixelArrayReset(struct pixelArray *pa)
 {
 	int flag = 0;
