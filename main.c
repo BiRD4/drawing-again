@@ -196,6 +196,9 @@ struct {
 SDL_Window *win;
 SDL_Renderer *ren;
 
+SDL_Texture *rulerTex;
+enum Side {SIDE_BOTTOM, SIDE_LEFT, SIDE_TOP, SIDE_RIGHT};
+
 struct canvas *canvasNew(int x, int y, int w, int h);
 struct canvasArray *canvasArrayNew();
 struct pixelArray *pixelArrayNew();
@@ -246,6 +249,32 @@ int init()
 	if (ren == NULL)
 		goto cleanup;
 	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+
+	SDL_Surface *rulerSurf = SDL_CreateRGBSurfaceWithFormat(
+			0, 256, 8, 32, SDL_PIXELFORMAT_ARGB32
+			);
+	if (!rulerSurf)
+		goto cleanup;
+	SDL_Renderer *rulerRen = SDL_CreateSoftwareRenderer(rulerSurf);
+	if (!rulerRen)
+		goto cleanup;
+
+	for (int i = 0; i < rulerSurf->h; ++i) {
+		int val = 255;
+		for (int j = 0; j < rulerSurf->w; ++j) {
+			if (j % (int) pow(2, i) == 0)
+				val = !val * 255;
+			SDL_SetRenderDrawColor(rulerRen, val, val, val, 127);
+			SDL_RenderDrawPoint(rulerRen, j, i);
+		}
+	}
+
+	rulerTex = SDL_CreateTextureFromSurface(ren, rulerSurf);
+	if (!rulerTex)
+		goto cleanup;
+
+	SDL_DestroyRenderer(rulerRen);
+	SDL_FreeSurface(rulerSurf);
 
 	state.event.cursorMotion.type = SDL_RegisterEvents(1);
 	if (state.event.cursorMotion.type == ((Uint32) -1))
@@ -1507,6 +1536,138 @@ cleanup:
 	return flag;
 }
 
+SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, int scaleHeight, enum Side side)
+{
+	int tw, th;
+	SDL_QueryTexture(rulerTex, NULL, NULL, &tw, &th);
+
+	int pixels = ceil((float) length / scaleLength);
+	int segs = ceil((float) pixels / tw);
+
+	SDL_Rect rect;
+	int rulerHeight = (scaleHeight * ceil(log2(pixels)));
+	rulerHeight += (rulerHeight == 0) ? scaleHeight : 0;
+	switch (side) {
+		case SIDE_BOTTOM:
+			rect.x = x;
+			rect.y = y;
+			rect.w = length;
+			rect.h = rulerHeight;
+			break;
+		case SIDE_LEFT:
+			rect.x = x - rulerHeight;
+			rect.y = y;
+			rect.w = rulerHeight;
+			rect.h = length;
+			break;
+		case SIDE_TOP:
+			rect.x = x;
+			rect.y = y - rulerHeight;
+			rect.w = length;
+			rect.h = rulerHeight;
+			break;
+		case SIDE_RIGHT:
+			rect.x = x;
+			rect.y = y;
+			rect.w = rulerHeight;
+			rect.h = length;
+			break;
+		default:
+			break;
+	};
+
+	SDL_RenderSetClipRect(r, &rect);
+
+	if (segs != 1) {
+		int nextX, nextY;
+		switch (side) {
+			case SIDE_BOTTOM:
+				nextX = x;
+				nextY = y + scaleHeight * th;
+				break;
+			case SIDE_LEFT:
+				nextX = x - scaleHeight * th;
+				nextY = y;
+				break;
+			case SIDE_TOP:
+				nextX = x;
+				nextY = y - scaleHeight * th;
+				break;
+			case SIDE_RIGHT:
+				nextX = x + scaleHeight * th;
+				nextY = y;
+				break;
+			default:
+				break;
+		}
+		drawRuler(
+			r, length,
+			nextX, nextY,
+			scaleLength * tw, scaleHeight,
+			side
+			);
+	}
+	
+	int angle;
+	SDL_RendererFlip flip;
+	switch (side) {
+		case SIDE_BOTTOM:
+			angle = 0;
+			flip = SDL_FLIP_NONE;
+			break;
+		case SIDE_LEFT:
+			angle = 90;
+			flip = SDL_FLIP_NONE;
+			break;
+		case SIDE_TOP:
+			angle = 0;
+			flip = SDL_FLIP_VERTICAL;
+			break;
+		case SIDE_RIGHT:
+			angle = 90;
+			flip = SDL_FLIP_VERTICAL;
+			break;
+		default:
+			break;
+	}
+	SDL_Point center = {0, 0};
+
+	int leftPixels = pixels;
+	for (int i = 0; i < segs; ++i) {
+		int currPixels = (leftPixels < tw) ? leftPixels : tw;
+		leftPixels -= currPixels;
+		SDL_Rect src = {0, 0, currPixels, ceil(log2(currPixels))};
+		SDL_Rect dst;
+		switch (side) {
+			case SIDE_BOTTOM:
+				dst.x = x + scaleLength * tw * i;
+				dst.y = y;
+				break;
+			case SIDE_LEFT:
+				dst.x = x;
+				dst.y = y + scaleLength * tw * i;
+				break;
+			case SIDE_TOP:
+				dst.x = x + scaleLength * tw * i;
+				dst.y = y - scaleHeight * src.h;
+				break;
+			case SIDE_RIGHT:
+				dst.x = x + scaleHeight * src.h;
+				dst.y = y + scaleLength * tw * i;
+				break;
+			default:
+				break;
+		}
+		dst.w = scaleLength * src.w;
+		dst.h = scaleHeight * src.h;
+		SDL_RenderCopyEx(r, rulerTex, &src, &dst, angle, &center, flip);
+	}
+
+	SDL_RenderSetClipRect(r, NULL);
+
+	return rect;
+}
+
 int frameDo()
 {
 	int flag = 0;
@@ -1529,25 +1690,60 @@ int frameDo()
 				state.easel.s * rectSrc.w,
 				state.easel.s * rectSrc.h
 			};
-			SDL_Rect rectBorder = {
-				rectDst.x - 1, rectDst.y - 1,
-				state.easel.s * c->w + 2,
-				state.easel.s * c->h + 2
-			};
-
 			SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
 
-			if (c->isSel)
-				SDL_SetRenderDrawColor(
-						ren, 255, 255, 255,
-						SDL_ALPHA_OPAQUE
-						);
-			else
-				SDL_SetRenderDrawColor(
-						ren, 127, 127, 127,
-						SDL_ALPHA_OPAQUE
-						);
-			SDL_RenderDrawRect(ren, &rectBorder);
+			SDL_Rect rectRulerBottom = drawRuler(
+					ren,
+					state.easel.s * c->w,
+					rectDst.x,
+					rectDst.y + state.easel.s * c->h,
+					state.easel.s,
+					(state.easel.s < 8)
+					? 1 : state.easel.s / 8,
+					SIDE_BOTTOM
+					);
+			SDL_Rect rectRulerLeft = drawRuler(
+					ren,
+					state.easel.s * c->h,
+					rectDst.x,
+					rectDst.y,
+					state.easel.s,
+					(state.easel.s < 8)
+					? 1 : state.easel.s / 8,
+					SIDE_LEFT
+					);
+			SDL_Rect rectRulerTop = drawRuler(
+					ren,
+					state.easel.s * c->w,
+					rectDst.x,
+					rectDst.y,
+					state.easel.s,
+					(state.easel.s < 8)
+					? 1 : state.easel.s / 8,
+					SIDE_TOP
+					);
+			SDL_Rect rectRulerRight = drawRuler(
+					ren,
+					state.easel.s * c->h,
+					rectDst.x + state.easel.s * c->w,
+					rectDst.y,
+					state.easel.s,
+					(state.easel.s < 8)
+					? 1 : state.easel.s / 8,
+					SIDE_RIGHT
+					);
+			SDL_SetRenderDrawColor(ren, 255, 255, 255, 95);
+			SDL_RenderFillRect(ren, &rectRulerBottom);
+			SDL_RenderFillRect(ren, &rectRulerLeft);
+			SDL_RenderFillRect(ren, &rectRulerTop);
+			SDL_RenderFillRect(ren, &rectRulerRight);
+			if (!c->isSel) {
+				SDL_SetRenderDrawColor(ren, 0, 0, 0, 95);
+				SDL_RenderFillRect(ren, &rectRulerBottom);
+				SDL_RenderFillRect(ren, &rectRulerLeft);
+				SDL_RenderFillRect(ren, &rectRulerTop);
+				SDL_RenderFillRect(ren, &rectRulerRight);
+			}
 		}
 	}
 
