@@ -379,7 +379,8 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->h = h;
 	c->tex = SDL_CreateTexture(
 			ren, SDL_PIXELFORMAT_ARGB32,
-			SDL_TEXTUREACCESS_TARGET, w, h
+			SDL_TEXTUREACCESS_TARGET,
+			w, h
 			);
 	if (!c->tex)
 		goto cleanup;
@@ -509,7 +510,8 @@ int canvasFix(struct canvas *c)
 	if (c->w != tw || c->h != th) {
 		SDL_Texture *newTex = SDL_CreateTexture(
 				ren, SDL_PIXELFORMAT_ARGB32,
-				SDL_TEXTUREACCESS_TARGET, c->w, c->h
+				SDL_TEXTUREACCESS_TARGET,
+				c->w, c->h
 				);
 		if (!newTex)
 			goto cleanup;
@@ -1225,7 +1227,7 @@ int setDrag(enum ActionDrag action)
 					canvasArrayRemove(
 							state.canvasSel,
 							state.canvasSel->array[0]
-						      );
+							);
 				free(state.drag.canvasTransform.offX);
 				free(state.drag.canvasTransform.offY);
 				free(state.drag.canvasTransform.offW);
