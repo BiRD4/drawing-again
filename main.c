@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
@@ -198,24 +199,6 @@ SDL_Renderer *ren;
 struct canvas *canvasNew(int x, int y, int w, int h);
 struct canvasArray *canvasArrayNew();
 struct pixelArray *pixelArrayNew();
-
-int ceiling(float f)
-{
-	int i = (int) f;
-	if (f - i == 0)
-		return i;
-	else
-		return i + 1;
-}
-
-int round(double f)
-{
-	int i = (int) f;
-	if (f - i < 0.5)
-		return i;
-	else
-		return i + 1;
-}
 
 int allocDouble(void **array, int *memlen, int blockSize)
 {
@@ -2310,18 +2293,18 @@ int eventMouseMotion(SDL_Event *e)
 						state.drag.panZoom.accumStep = 0;
 					int accum = state.drag.panZoom.accumStep;
 					if (accum >= 0) {
-						int quota = ceiling(48.0 / state.easel.s);
+						int quota = ceil(48.0 / state.easel.s);
 						while (accum >= quota && state.easel.s < MAX_ZOOM) {
 							accum -= quota;
 							++state.easel.s;
-							quota = ceiling(48.0 / state.easel.s);
+							quota = ceil(48.0 / state.easel.s);
 						}
 					} else if (state.easel.s > 1) {
-						int quota = ceiling(48.0 /(state.easel.s - 1));
+						int quota = ceil(48.0 /(state.easel.s - 1));
 						while (-accum >= quota && state.easel.s > 1) {
 							accum += quota;
 							--state.easel.s;
-							quota = ceiling(48.0 /(state.easel.s - 1));
+							quota = ceil(48.0 /(state.easel.s - 1));
 						}
 					}
 					state.drag.panZoom.accumStep = accum;
