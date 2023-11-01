@@ -199,7 +199,7 @@ struct {
 SDL_Window *win;
 SDL_Renderer *ren;
 
-SDL_Texture *rulerTex;
+SDL_Texture *texRuler;
 enum Side {SIDE_BOTTOM, SIDE_LEFT, SIDE_TOP, SIDE_RIGHT};
 
 struct canvas *canvasNew(int x, int y, int w, int h);
@@ -275,8 +275,8 @@ int init()
 		}
 	}
 
-	rulerTex = SDL_CreateTextureFromSurface(ren, rulerSurf);
-	if (!rulerTex)
+	texRuler = SDL_CreateTextureFromSurface(ren, rulerSurf);
+	if (!texRuler)
 		goto cleanup;
 
 	SDL_DestroyRenderer(rulerRen);
@@ -1633,7 +1633,7 @@ cleanup:
 SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, int scaleHeight, enum Side side, SDL_RendererFlip flip)
 {
 	int tw, th;
-	SDL_QueryTexture(rulerTex, NULL, NULL, &tw, &th);
+	SDL_QueryTexture(texRuler, NULL, NULL, &tw, &th);
 
 	int pixels = ceil((float) length / scaleLength);
 	int segs = ceil((float) pixels / tw);
@@ -1753,7 +1753,7 @@ SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, i
 		}
 		dst.w = scaleLength * src.w;
 		dst.h = scaleHeight * src.h;
-		SDL_RenderCopyEx(r, rulerTex, &src, &dst, angle, &center, flip);
+		SDL_RenderCopyEx(r, texRuler, &src, &dst, angle, &center, flip);
 	}
 
 	SDL_RenderSetClipRect(r, NULL);
