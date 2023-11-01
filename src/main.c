@@ -1360,6 +1360,7 @@ int setDrag(enum ActionDrag action)
 				    );
 			break;
 		case D_PICK:
+			SDL_CaptureMouse(SDL_FALSE);
 			state.drag.pick.pickRed = 0;
 			state.drag.pick.pickGreen = 0;
 			state.drag.pick.pickBlue = 0;
@@ -1483,6 +1484,7 @@ int setDrag(enum ActionDrag action)
 				break;
 			}
 		case D_PICK:
+			SDL_CaptureMouse(SDL_TRUE);
 			break;
 		default:
 			break;
