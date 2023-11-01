@@ -2285,6 +2285,49 @@ E_SELECT_fd:
 				default:
 					break;
 			}
+			if (state.space) {
+				switch (state.modeCanvas) {
+					int mx, my;
+					int cursorX, cursorY;
+					struct canvas *c;
+					SDL_Color *color;
+					case C_PIXEL:
+					case C_LINE:
+					case C_FILL:
+						SDL_GetMouseState(&mx, &my);
+						cursorX = TO_COORD_EASEL_X(mx);
+						cursorY = TO_COORD_EASEL_Y(my);
+						c = canvasArrayFind(
+								state.canvasArr,
+								cursorX, cursorY
+								);
+						switch (e->key.keysym.sym) {
+							case SDLK_f:
+								color = &state.colors.f;
+								break;
+							case SDLK_d:
+								color = &state.colors.d;
+								break;
+							case SDLK_s:
+								color = &state.colors.s;
+								break;
+							case SDLK_a:
+								color = &state.colors.a;
+								break;
+							default:
+								break;
+						}
+						canvasGetColor(
+							c,
+							cursorX - c->x,
+							cursorY - c->y,
+							color
+							);
+						goto cleanupNoError;
+					default:
+						break;
+				}
+			}
 			switch (state.modeCanvas) {
 				case C_PIXEL:
 					switch (e->key.keysym.sym) {
