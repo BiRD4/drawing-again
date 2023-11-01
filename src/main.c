@@ -1764,6 +1764,8 @@ int frameDo()
 {
 	int flag = 0;
 
+	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(ren);
 
@@ -1923,8 +1925,6 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
-	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-
 	SDL_Color colors[4] = {state.colors.a, state.colors.s, state.colors.d, state.colors.f};
 
 	SDL_Rect rectColors = {0, 0, 129, 33};
@@ -1938,10 +1938,10 @@ int frameDo()
 		rectColor.x += 32;
 	}
 
+	SDL_RenderPresent(ren);
+
 	if (!state.blend)
 		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
-
-	SDL_RenderPresent(ren);
 
 	flag = 1;
 cleanup:
