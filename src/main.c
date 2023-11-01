@@ -2674,7 +2674,7 @@ int eventMouseMotion(SDL_Event *e)
 					goto D_PICK_fdsa;
 D_PICK_fdsa:
 					if (state.drag.pick.pickRed) {
-						int newVal = color->r - e->motion.yrel;
+						int newVal = color->r + e->motion.yrel;
 						if (newVal < 0)
 							color->r = 0;
 						else if (newVal > 255)
@@ -2683,7 +2683,7 @@ D_PICK_fdsa:
 							color->r = newVal;
 					}
 					if (state.drag.pick.pickGreen) {
-						int newVal = color->g - e->motion.yrel;
+						int newVal = color->g + e->motion.yrel;
 						if (newVal < 0)
 							color->g = 0;
 						else if (newVal > 255)
@@ -2692,7 +2692,7 @@ D_PICK_fdsa:
 							color->g = newVal;
 					}
 					if (state.drag.pick.pickBlue) {
-						int newVal = color->b - e->motion.yrel;
+						int newVal = color->b + e->motion.yrel;
 						if (newVal < 0)
 							color->b = 0;
 						else if (newVal > 255)
@@ -2701,7 +2701,7 @@ D_PICK_fdsa:
 							color->b = newVal;
 					}
 					if (state.drag.pick.pickAlpha) {
-						int newVal = color->a - e->motion.yrel;
+						int newVal = color->a + e->motion.yrel;
 						if (newVal < 0)
 							color->a = 0;
 						else if (newVal > 255)
