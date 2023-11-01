@@ -1630,7 +1630,7 @@ cleanup:
 	return flag;
 }
 
-SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, int scaleHeight, enum Side side)
+SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, int scaleHeight, enum Side side, SDL_RendererFlip flip)
 {
 	int tw, th;
 	SDL_QueryTexture(rulerTex, NULL, NULL, &tw, &th);
@@ -1698,28 +1698,27 @@ SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, i
 			r, length,
 			nextX, nextY,
 			scaleLength * tw, scaleHeight,
-			side
+			side, flip
 			);
 	}
 	
 	int angle;
-	SDL_RendererFlip flip;
 	switch (side) {
 		case SIDE_BOTTOM:
 			angle = 0;
-			flip = SDL_FLIP_NONE;
+			flip ^= SDL_FLIP_NONE;
 			break;
 		case SIDE_LEFT:
 			angle = 90;
-			flip = SDL_FLIP_NONE;
+			flip ^= SDL_FLIP_NONE;
 			break;
 		case SIDE_TOP:
 			angle = 0;
-			flip = SDL_FLIP_VERTICAL;
+			flip ^= SDL_FLIP_VERTICAL;
 			break;
 		case SIDE_RIGHT:
 			angle = 90;
-			flip = SDL_FLIP_VERTICAL;
+			flip ^= SDL_FLIP_VERTICAL;
 			break;
 		default:
 			break;
@@ -1796,7 +1795,7 @@ int frameDo()
 					state.easel.s,
 					(state.easel.s < 8)
 					? 1 : state.easel.s / 8,
-					SIDE_BOTTOM
+					SIDE_BOTTOM, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerLeft = drawRuler(
 					ren,
@@ -1806,7 +1805,7 @@ int frameDo()
 					state.easel.s,
 					(state.easel.s < 8)
 					? 1 : state.easel.s / 8,
-					SIDE_LEFT
+					SIDE_LEFT, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerTop = drawRuler(
 					ren,
@@ -1816,7 +1815,7 @@ int frameDo()
 					state.easel.s,
 					(state.easel.s < 8)
 					? 1 : state.easel.s / 8,
-					SIDE_TOP
+					SIDE_TOP, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerRight = drawRuler(
 					ren,
@@ -1826,7 +1825,7 @@ int frameDo()
 					state.easel.s,
 					(state.easel.s < 8)
 					? 1 : state.easel.s / 8,
-					SIDE_RIGHT
+					SIDE_RIGHT, SDL_FLIP_NONE
 					);
 			SDL_SetRenderDrawColor(ren, 255, 255, 255, 95);
 			SDL_RenderFillRect(ren, &rectRulerBottom);
