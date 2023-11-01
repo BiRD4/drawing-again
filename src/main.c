@@ -2127,16 +2127,35 @@ int eventKeyDown(SDL_Event *e)
 					switch (e->key.keysym.sym) {
 						case SDLK_f:
 						{
-							int mx;
-							SDL_GetMouseState(&mx, NULL);
-							state.drag.canvasTransform.setX = 1;
-							if (state.drag.action != D_CANVASTRANSFORM)
-								setDrag(D_CANVASTRANSFORM);
-							if (state.canvasSel->size != 0) {
-								MAP_CANVASES(state.canvasSel, i, c) {
-									state.drag.canvasTransform.offX[i] =
-										c->x
-										- TO_COORD_EASEL_X(mx);
+							if (!state.space) {
+								int mx;
+								SDL_GetMouseState(&mx, NULL);
+								state.drag.canvasTransform.setX = 1;
+								if (state.drag.action != D_CANVASTRANSFORM)
+									setDrag(D_CANVASTRANSFORM);
+								if (state.canvasSel->size != 0) {
+									MAP_CANVASES(state.canvasSel, i, c) {
+										state.drag.canvasTransform.offX[i] =
+											c->x
+											- TO_COORD_EASEL_X(mx);
+									}
+								}
+							} else {
+								if (state.canvasSel->size != 0) {
+									MAP_CANVASES(state.canvasSel, i, c) {
+										canvasArrayRemove(state.canvasArr, c);
+										canvasArrayAppend(state.canvasArr, c);
+									}
+								} else {
+									int mx, my;
+									SDL_GetMouseState(&mx, &my);
+									struct canvas *c = canvasArrayFind(
+											state.canvasArr,
+											TO_COORD_EASEL_X(mx),
+											TO_COORD_EASEL_Y(my)
+											);
+									canvasArrayRemove(state.canvasArr, c);
+									canvasArrayAppend(state.canvasArr, c);
 								}
 							}
 							break;
