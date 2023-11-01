@@ -1941,7 +1941,55 @@ int frameDo()
 				colors[i].b, colors[i].a
 				);
 		SDL_RenderFillRect(ren, &rectColor);
+		if (state.scope == S_PICK) {
+			if (3 - i == state.modePick) {
+				SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+				SDL_RenderDrawRect(ren, &rectColor);
+			}
+		}
 		rectColor.x += rectColor.w;
+	}
+
+	if (state.scope == S_PICK) {
+		SDL_Color color;
+		switch (state.modePick) {
+			case P_F:
+				color = state.colors.f;
+				break;
+			case P_D:
+				color = state.colors.d;
+				break;
+			case P_S:
+				color = state.colors.s;
+				break;
+			case P_A:
+				color = state.colors.a;
+				break;
+			default:
+				break;
+		}
+		int channels[4] = {color.a, color.b, color.g, color.r};
+		SDL_Color rulerColors[4] = {
+			{255, 255, 255, 127},
+			{  0,   0, 255, 127},
+			{  0, 255,   0, 127},
+			{255,   0,   0, 127}
+		};
+		for (int i = 0; i < 4; ++i) {
+			SDL_Rect rectRuler = drawRuler(
+					ren, 256,
+					rectColor.w * i, rectColors.h + channels[i],
+					1, 4, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
+					);
+			SDL_SetRenderDrawColor(
+					ren,
+					rulerColors[i].r, rulerColors[i].g,
+					rulerColors[i].b, rulerColors[i].a
+					);
+			SDL_RenderFillRect(ren, &rectRuler);
+		}
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderDrawLine(ren, 0, rectColors.h + 255, 128, rectColors.h + 255);
 	}
 
 	SDL_RenderPresent(ren);
