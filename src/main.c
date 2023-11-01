@@ -2458,23 +2458,23 @@ C_FILL_fdsa:
 					mode = P_F;
 					tmp = state.colors.f;
 					swap = &state.colors.f;
-					goto S_PICK_fdsa;
+					goto S_PICK_rewq;
 				case SDLK_e:
 					mode = P_D;
 					tmp = state.colors.d;
 					swap = &state.colors.d;
-					goto S_PICK_fdsa;
+					goto S_PICK_rewq;
 				case SDLK_w:
 					mode = P_S;
 					tmp = state.colors.s;
 					swap = &state.colors.s;
-					goto S_PICK_fdsa;
+					goto S_PICK_rewq;
 				case SDLK_q:
 					mode = P_A;
 					tmp = state.colors.a;
 					swap = &state.colors.a;
-					goto S_PICK_fdsa;
-S_PICK_fdsa:
+					goto S_PICK_rewq;
+S_PICK_rewq:
 					if (state.space) {
 						switch (state.modePick) {
 							case P_F:
