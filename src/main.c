@@ -2026,29 +2026,45 @@ int eventKeyDown(SDL_Event *e)
 			int mx, my;
 			struct canvas *c;
 			case SDLK_e:
-				SDL_GetMouseState(&mx, &my);
-				c = canvasArrayFind(
-						state.canvasArr,
-						TO_COORD_EASEL_X(mx),
-						TO_COORD_EASEL_Y(my)
-						);
-				if (c) {
-					canvasOpen(c);
+				if (state.canvasSel->size != 0) {
+					MAP_CANVASES(state.canvasSel, i, c) {
+						canvasOpen(c);
+					}
+				} else {
+					SDL_GetMouseState(&mx, &my);
+					c = canvasArrayFind(
+							state.canvasArr,
+							TO_COORD_EASEL_X(mx),
+							TO_COORD_EASEL_Y(my)
+							);
+					if (c) {
+						canvasOpen(c);
+					}
 				}
 				break;
 			case SDLK_s:
-				SDL_GetMouseState(&mx, &my);
-				c = canvasArrayFind(
-						state.canvasArr,
-						TO_COORD_EASEL_X(mx),
-						TO_COORD_EASEL_Y(my)
-						);
-				if (c) {
-					if (!c->path
-					 || e->key.keysym.mod & KMOD_SHIFT)
-						canvasSaveAs(c);
-					else
-						canvasSave(c);
+				if (state.canvasSel->size != 0) {
+					MAP_CANVASES(state.canvasSel, i, c) {
+						if (!c->path
+						 || e->key.keysym.mod & KMOD_SHIFT)
+							canvasSaveAs(c);
+						else
+							canvasSave(c);
+					}
+				} else {
+					SDL_GetMouseState(&mx, &my);
+					c = canvasArrayFind(
+							state.canvasArr,
+							TO_COORD_EASEL_X(mx),
+							TO_COORD_EASEL_Y(my)
+							);
+					if (c) {
+						if (!c->path
+								|| e->key.keysym.mod & KMOD_SHIFT)
+							canvasSaveAs(c);
+						else
+							canvasSave(c);
+					}
 				}
 				break;
 		}
