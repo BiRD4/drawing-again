@@ -1858,7 +1858,6 @@ int frameDo()
 			state.easel.s * rectSrc.w,
 			state.easel.s * rectSrc.h
 		};
-
 		SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
 	}
 
