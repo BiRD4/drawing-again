@@ -327,6 +327,7 @@ void quit()
 	canvasArrayFree(state.canvasSel);
 
 	SDL_DestroyRenderer(ren);
+	SDL_DestroyTexture(texRuler);
 	SDL_Quit();
 }
 
