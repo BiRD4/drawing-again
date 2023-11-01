@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <tinyfiledialogs.h>
 
 #define FPS 60
 #define MAX_ZOOM 64
@@ -43,6 +45,7 @@ struct canvas {
 	SDL_Texture *tex;
 	SDL_Surface *surf;
 	SDL_Renderer *ren;
+	char *path;
 };
 
 struct pixel {
@@ -233,6 +236,9 @@ int init()
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		goto cleanup;
 
+	if (!IMG_Init(IMG_INIT_PNG))
+		goto cleanup;
+
 	win = SDL_CreateWindow(
 			"Drawing Program",
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -324,6 +330,18 @@ void quit()
 	SDL_Quit();
 }
 
+char *dialogFileSave(char *title, char *initPath)
+{
+	char *patterns[] = {"*.png"};
+	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
+}
+
+char *dialogFileOpen(char *title, char *initPath, int multiSel)
+{
+	char *patterns[] = {"*.png"};
+	return tinyfd_openFileDialog(title, initPath, 1, patterns, NULL, multiSel);
+}
+
 int texFix()
 {
 	int flag = 0;
@@ -408,6 +426,7 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	if (!c->ren)
 		goto cleanup_ren;
 	SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
+	c->path = NULL;
 	return c;
 
 cleanup_ren:
@@ -433,6 +452,79 @@ int canvasDel(struct canvas *c)
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
 	free(c);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasSave(struct canvas *c)
+{
+	int flag = 0;
+	if (!c)
+		goto cleanup;
+
+	if (IMG_SavePNG(c->surf, c->path))
+		goto cleanup;
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasLoad(struct canvas *c)
+{
+	int flag = 0;
+	if (!c)
+		goto cleanup;
+
+	SDL_Surface *newSurf = IMG_Load(c->path);
+	if (!newSurf)
+		goto cleanup;
+	newSurf = SDL_ConvertSurfaceFormat(newSurf, SDL_PIXELFORMAT_ARGB32, 0);
+	if (!newSurf)
+		goto cleanup;
+	SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
+	if (!newRen)
+		goto cleanup;
+	SDL_SetRenderDrawBlendMode(newRen, SDL_BLENDMODE_BLEND);
+	SDL_DestroyRenderer(c->ren);
+	SDL_FreeSurface(c->surf);
+	c->surf = newSurf;
+	c->ren = newRen;
+	c->w = c->surf->w;
+	c->h = c->surf->h;
+	canvasFix(c);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasSaveAs(struct canvas *c)
+{
+	int flag = 0;
+
+	char *path = dialogFileSave("Save as", c->path);
+	if (!path)
+		goto cleanup;
+	c->path = path;
+	canvasSave(c);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasOpen(struct canvas *c)
+{
+	int flag = 0;
+
+	char *path = dialogFileOpen("Open", c->path, 0);
+	if (!path)
+		goto cleanup;
+	c->path = path;
+	canvasLoad(c);
 
 	flag = 1;
 cleanup:
@@ -1874,6 +1966,40 @@ int eventKeyDown(SDL_Event *e)
 
 	if (e->key.repeat)
 		goto cleanupNoError;
+
+	if (e->key.keysym.mod & KMOD_CTRL) {
+		switch (e->key.keysym.sym) {
+			int mx, my;
+			struct canvas *c;
+			case SDLK_e:
+				SDL_GetMouseState(&mx, &my);
+				c = canvasArrayFind(
+						state.canvasArr,
+						TO_COORD_EASEL_X(mx),
+						TO_COORD_EASEL_Y(my)
+						);
+				if (c) {
+					canvasOpen(c);
+				}
+				break;
+			case SDLK_s:
+				SDL_GetMouseState(&mx, &my);
+				c = canvasArrayFind(
+						state.canvasArr,
+						TO_COORD_EASEL_X(mx),
+						TO_COORD_EASEL_Y(my)
+						);
+				if (c) {
+					if (!c->path
+					 || e->key.keysym.mod & KMOD_SHIFT)
+						canvasSaveAs(c);
+					else
+						canvasSave(c);
+				}
+				break;
+		}
+		goto cleanupNoError;
+	}
 
 	switch (e->key.keysym.sym) {
 		case SDLK_F12:
