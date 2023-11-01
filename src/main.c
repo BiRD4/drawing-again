@@ -521,7 +521,7 @@ int canvasOpen(struct canvas *c)
 {
 	int flag = 0;
 
-	char *path = dialogFileOpen("Open", c->path, 0);
+	char *path = dialogFileOpen("Open file", c->path, 0);
 	if (!path)
 		goto cleanup;
 	c->path = path;
