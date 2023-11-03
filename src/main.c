@@ -14,12 +14,12 @@
 #define INIT_CANVAS_WIDTH 16
 #define INIT_CANVAS_HEIGHT 16
 
-#define TO_COORD_EASEL_X(c) ((c - state.easel.x) / state.easel.s \
-                           - (c - state.easel.x < 0))
-#define TO_COORD_EASEL_Y(c) ((c - state.easel.y) / state.easel.s \
-                           - (c - state.easel.y < 0))
-#define TO_COORD_SCREEN_X(c) (c * state.easel.s + state.easel.x)
-#define TO_COORD_SCREEN_Y(c) (c * state.easel.s + state.easel.y)
+#define TO_COORD_EASEL_X(c) (((c) - state.easel.x) / state.easel.s \
+                           - ((c) - state.easel.x < 0))
+#define TO_COORD_EASEL_Y(c) (((c) - state.easel.y) / state.easel.s \
+                           - ((c) - state.easel.y < 0))
+#define TO_COORD_SCREEN_X(c) ((c) * state.easel.s + state.easel.x)
+#define TO_COORD_SCREEN_Y(c) ((c) * state.easel.s + state.easel.y)
 
 #define MAP_CANVASES(ca, i, c)           \
         struct canvas *c = ca->array[0]; \
