@@ -3124,24 +3124,22 @@ int cursorMotion(int cursorX, int cursorY)
 				break;
 			}
 		case D_DRAWPIXEL:
-			{
-				pixelArrayReset(state.drag.drawPixel.pixels);
-				pixelArrayLine(
-					state.drag.drawPixel.pixels,
-					state.drag.drawPixel.initX,
-					state.drag.drawPixel.initY,
-					cursorX, cursorY, 1
-					);
-				pixelArrayDo(
-					state.drag.drawPixel.pixels,
-					(state.canvasSel->size == 0)
-					? state.canvasArr : state.canvasSel,
-					state.drag.drawPixel.color
-					);
-				state.drag.drawPixel.initX = cursorX;
-				state.drag.drawPixel.initY = cursorY;
-				break;
-			}
+			pixelArrayReset(state.drag.drawPixel.pixels);
+			pixelArrayLine(
+				state.drag.drawPixel.pixels,
+				state.drag.drawPixel.initX,
+				state.drag.drawPixel.initY,
+				cursorX, cursorY, 1
+				);
+			pixelArrayDo(
+				state.drag.drawPixel.pixels,
+				(state.canvasSel->size == 0)
+				? state.canvasArr : state.canvasSel,
+				state.drag.drawPixel.color
+				);
+			state.drag.drawPixel.initX = cursorX;
+			state.drag.drawPixel.initY = cursorY;
+			break;
 		case D_DRAWLINE:
 			{
 				state.drag.drawLine.currX = cursorX;
