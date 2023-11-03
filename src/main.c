@@ -504,6 +504,8 @@ cleanup:
 int canvasSaveAs(struct canvas *c)
 {
 	int flag = 0;
+	if (!c)
+		goto cleanup;
 
 	char *path = dialogFileSave("Save as", c->path);
 	if (!path)
@@ -522,6 +524,8 @@ cleanup:
 int canvasOpen(struct canvas *c)
 {
 	int flag = 0;
+	if (!c)
+		goto cleanup;
 
 	char *path = dialogFileOpen("Open file", c->path, 0);
 	if (!path)
