@@ -2627,7 +2627,7 @@ E_SELECT_fd:
 				case C_FILL:
 					switch (e->key.keysym.sym) {
 						int mx, my;
-						int easelX, easelY;
+						int cursorX, cursorY;
 						struct canvasArray *ca;
 						struct canvas *c;
 						struct pixelMask *pm;
@@ -2646,18 +2646,18 @@ E_SELECT_fd:
 							goto C_FILL_fdsa;
 C_FILL_fdsa:
 							SDL_GetMouseState(&mx, &my);
-							easelX = TO_COORD_EASEL_X(mx);
-							easelY = TO_COORD_EASEL_Y(my);
+							cursorX = TO_COORD_EASEL_X(mx);
+							cursorY = TO_COORD_EASEL_Y(my);
 							ca = (state.canvasSel->size == 0)
 								? state.canvasArr
 								: state.canvasSel;
-							c = canvasArrayFind(ca, easelX, easelY);
+							c = canvasArrayFind(ca, cursorX, cursorY);
 							if (!c)
 								goto cleanupNoError;
 							ca = canvasArrayNew();
 							canvasArrayAppend(ca, c);
 							pm = pixelMaskNew(c->x, c->y, c->w, c->h, 0);
-							pixelMaskFill(pm, c, easelX, easelY);
+							pixelMaskFill(pm, c, cursorX, cursorY);
 							pixelMaskDo(pm, ca, color);
 							pixelMaskFree(pm);
 							canvasArrayFree(ca);
