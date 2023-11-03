@@ -2080,7 +2080,7 @@ int eventKeyDown(SDL_Event *e)
 			case SDLK_s:
 				if (state.canvasSel->size != 0) {
 					MAP_CANVASES(state.canvasSel, i, c) {
-						if (!c->path
+						if (c->path[0] == '\0'
 						 || e->key.keysym.mod & KMOD_SHIFT)
 							canvasSaveAs(c);
 						else
@@ -2094,8 +2094,8 @@ int eventKeyDown(SDL_Event *e)
 							TO_COORD_EASEL_Y(my)
 							);
 					if (c) {
-						if (!c->path
-								|| e->key.keysym.mod & KMOD_SHIFT)
+						if (c->path[0] == '\0'
+						 || e->key.keysym.mod & KMOD_SHIFT)
 							canvasSaveAs(c);
 						else
 							canvasSave(c);
