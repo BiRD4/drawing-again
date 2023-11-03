@@ -3158,64 +3158,60 @@ int cursorMotion(int cursorX, int cursorY)
 			state.drag.drawPixel.initY = cursorY;
 			break;
 		case D_DRAWLINE:
-			{
-				SDL_Color color = state.drag.drawLine.color;
-				color.a = SDL_ALPHA_OPAQUE;
-				state.drag.drawLine.currX = cursorX;
-				state.drag.drawLine.currY = cursorY;
-				canvasClear(state.drag.drawLine.preview);
-				if (cursorX >= state.drag.drawLine.initX) {
-					if (cursorY >= state.drag.drawLine.initY) {
-						canvasMove(
-							state.drag.drawLine.preview,
-							state.drag.drawLine.initX,
-							state.drag.drawLine.initY,
-							cursorX - state.drag.drawLine.initX + 1,
-							cursorY - state.drag.drawLine.initY + 1
-							);
-					} else {
-						canvasMove(
-							state.drag.drawLine.preview,
-							state.drag.drawLine.initX,
-							cursorY,
-							cursorX - state.drag.drawLine.initX + 1,
-							state.drag.drawLine.initY - cursorY + 1
-							);
-					}
+			state.drag.drawLine.currX = cursorX;
+			state.drag.drawLine.currY = cursorY;
+			canvasClear(state.drag.drawLine.preview);
+			if (cursorX >= state.drag.drawLine.initX) {
+				if (cursorY >= state.drag.drawLine.initY) {
+					canvasMove(
+						state.drag.drawLine.preview,
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY,
+						cursorX - state.drag.drawLine.initX + 1,
+						cursorY - state.drag.drawLine.initY + 1
+						);
 				} else {
-					if (cursorY >= state.drag.drawLine.initY) {
-						canvasMove(
-							state.drag.drawLine.preview,
-							cursorX,
-							state.drag.drawLine.initY,
-							state.drag.drawLine.initX - cursorX + 1,
-							cursorY - state.drag.drawLine.initY + 1
-							);
-					} else {
-						canvasMove(
-							state.drag.drawLine.preview,
-							cursorX,
-							cursorY,
-							state.drag.drawLine.initX - cursorX + 1,
-							state.drag.drawLine.initY - cursorY + 1
-							);
-					}
+					canvasMove(
+						state.drag.drawLine.preview,
+						state.drag.drawLine.initX,
+						cursorY,
+						cursorX - state.drag.drawLine.initX + 1,
+						state.drag.drawLine.initY - cursorY + 1
+						);
 				}
-				canvasFix(state.drag.drawLine.preview);
-				pixelArrayReset(state.drag.drawLine.pixels);
-				pixelArrayLine(
-					state.drag.drawLine.pixels,
-					state.drag.drawLine.initX,
-					state.drag.drawLine.initY,
-					cursorX, cursorY, 0
-					);
-				pixelArrayDo(
-					state.drag.drawLine.pixels,
-					state.drag.drawLine.previewArr,
-					state.drag.drawLine.color, 0
-					);
-				break;
+			} else {
+				if (cursorY >= state.drag.drawLine.initY) {
+					canvasMove(
+						state.drag.drawLine.preview,
+						cursorX,
+						state.drag.drawLine.initY,
+						state.drag.drawLine.initX - cursorX + 1,
+						cursorY - state.drag.drawLine.initY + 1
+						);
+				} else {
+					canvasMove(
+						state.drag.drawLine.preview,
+						cursorX,
+						cursorY,
+						state.drag.drawLine.initX - cursorX + 1,
+						state.drag.drawLine.initY - cursorY + 1
+						);
+				}
 			}
+			canvasFix(state.drag.drawLine.preview);
+			pixelArrayReset(state.drag.drawLine.pixels);
+			pixelArrayLine(
+				state.drag.drawLine.pixels,
+				state.drag.drawLine.initX,
+				state.drag.drawLine.initY,
+				cursorX, cursorY, 0
+				);
+			pixelArrayDo(
+				state.drag.drawLine.pixels,
+				state.drag.drawLine.previewArr,
+				state.drag.drawLine.color, 0
+				);
+			break;
 		case D_DRAWRECT:
 			state.drag.drawRect.currX = cursorX;
 			state.drag.drawRect.currY = cursorY;
