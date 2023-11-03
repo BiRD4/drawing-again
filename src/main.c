@@ -99,7 +99,7 @@ struct {
 	// TODO add C_SELECT
 	enum Scope {S_EASEL, S_CANVAS, S_PICK} scope;
 	enum ModeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
-	enum ModeCanvas {C_PIXEL, C_LINE, C_FILL} modeCanvas;
+	enum ModeCanvas {C_PIXEL, C_LINE, C_RECT, C_FILL} modeCanvas;
 	enum ModePick {P_F, P_D, P_S, P_A} modePick;
 
 	struct {
@@ -110,6 +110,7 @@ struct {
 			D_CANVASTRANSFORM,
 			D_DRAWPIXEL,
 			D_DRAWLINE,
+			D_DRAWRECT,
 			D_PICK
 		} action;
 		struct {
@@ -151,6 +152,14 @@ struct {
 			struct canvasArray *previewArr;
 		} drawLine;
 		struct {
+			int initX;
+			int initY;
+			int currX;
+			int currY;
+			enum Key key;
+			SDL_Color color;
+		} drawRect;
+		struct {
 			int pickRed;
 			int pickGreen;
 			int pickBlue;
@@ -179,6 +188,7 @@ struct {
 		{0, 0, 0, 0, NULL, NULL, NULL, NULL},
 		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
 		{0, 0, 0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL},
+		{0, 0, 0, 0, KEY_F, {0, 0, 0, 0}},
 		{0, 0, 0, 0}
 	},
 	{
@@ -1378,6 +1388,34 @@ int setDrag(enum ActionDrag action)
 					state.drag.drawLine.color
 				    );
 			break;
+		case D_DRAWRECT:
+			{
+				struct pixelMask *pm;
+				if (state.drag.drawRect.currX >= state.drag.drawRect.initX) {
+					pm = pixelMaskNew(
+						state.drag.drawRect.initX,
+						state.drag.drawRect.initY,
+						state.drag.drawRect.currX - state.drag.drawRect.initX + 1,
+						state.drag.drawRect.currY - state.drag.drawRect.initY + 1,
+						1
+						);
+				} else {
+					pm = pixelMaskNew(
+						state.drag.drawRect.currX,
+						state.drag.drawRect.currY,
+						state.drag.drawRect.initX - state.drag.drawRect.currX + 1,
+						state.drag.drawRect.initY - state.drag.drawRect.currY + 1,
+						1
+						);
+				}
+				struct canvasArray *ca =
+					(state.canvasSel->size == 0)
+					? state.canvasArr
+					: state.canvasSel;
+				pixelMaskDo(pm, ca, state.drag.drawRect.color);
+				pixelMaskFree(pm);
+				break;
+			}
 		case D_PICK:
 			SDL_CaptureMouse(SDL_FALSE);
 			state.drag.pick.pickRed = 0;
@@ -1503,6 +1541,16 @@ int setDrag(enum ActionDrag action)
 				canvasFix(state.drag.drawLine.preview);
 				break;
 			}
+		case D_DRAWRECT:
+			{
+				int mx, my;
+				SDL_GetMouseState(&mx, &my);
+				state.drag.drawRect.initX = TO_COORD_EASEL_X(mx);
+				state.drag.drawRect.initY = TO_COORD_EASEL_Y(my);
+				state.drag.drawRect.currX = state.drag.drawRect.initX;
+				state.drag.drawRect.currY = state.drag.drawRect.initY;
+				break;
+			}
 		case D_PICK:
 			SDL_CaptureMouse(SDL_TRUE);
 			break;
@@ -1609,6 +1657,8 @@ int setSpace(int space)
 				break;
 			case D_DRAWLINE:
 				break;
+			case D_DRAWRECT:
+				break;
 			case D_PICK:
 				break;
 			default:
@@ -1634,6 +1684,8 @@ int setSpace(int space)
 			case D_DRAWPIXEL:
 				break;
 			case D_DRAWLINE:
+				break;
+			case D_DRAWRECT:
 				break;
 			case D_PICK:
 				break;
@@ -1862,22 +1914,74 @@ int frameDo()
 		}
 	}
 
-	if (state.drag.action == D_DRAWLINE) {
-		struct canvas *c = state.drag.drawLine.preview;
-		int tw, th;
-		SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
-		SDL_Rect rectSrc = {
-			0, 0,
-			(c->w >= tw) ? tw : c->w,
-			(c->h >= th) ? th : c->h
-		};
-		SDL_Rect rectDst = {
-			TO_COORD_SCREEN_X(c->x),
-			TO_COORD_SCREEN_Y(c->y),
-			state.easel.s * rectSrc.w,
-			state.easel.s * rectSrc.h
-		};
-		SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
+	switch (state.drag.action) {
+		case D_DRAWLINE:
+			{
+				struct canvas *c = state.drag.drawLine.preview;
+				int tw, th;
+				SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+				SDL_Rect rectSrc = {
+					0, 0,
+					(c->w >= tw) ? tw : c->w,
+					(c->h >= th) ? th : c->h
+				};
+				SDL_Rect rectDst = {
+					TO_COORD_SCREEN_X(c->x),
+					TO_COORD_SCREEN_Y(c->y),
+					state.easel.s * rectSrc.w,
+					state.easel.s * rectSrc.h
+				};
+				SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
+				break;
+			}
+		case D_DRAWRECT:
+			{
+				int x, y, w, h;
+				if (state.drag.drawRect.currX
+				 >= state.drag.drawRect.initX) {
+					x = TO_COORD_SCREEN_X(
+						state.drag.drawRect.initX
+						);
+					w = TO_COORD_SCREEN_X(
+						state.drag.drawRect.currX
+						) - x;
+				} else {
+					x = TO_COORD_SCREEN_X(
+						state.drag.drawRect.currX
+						);
+					w = TO_COORD_SCREEN_X(
+						state.drag.drawRect.initX
+						) - x;
+				}
+				if (state.drag.drawRect.currY
+				 >= state.drag.drawRect.initY) {
+					y = TO_COORD_SCREEN_Y(
+						state.drag.drawRect.initY
+						);
+					h = TO_COORD_SCREEN_Y(
+						state.drag.drawRect.currY
+						) - y;
+				} else {
+					y = TO_COORD_SCREEN_Y(
+						state.drag.drawRect.currY
+						);
+					h = TO_COORD_SCREEN_Y(
+						state.drag.drawRect.initY
+						) - y;
+				}
+				SDL_Rect rectRect = {x, y, w, h};
+				SDL_SetRenderDrawColor(
+						ren,
+						state.drag.drawRect.color.r,
+						state.drag.drawRect.color.g,
+						state.drag.drawRect.color.b,
+						state.drag.drawRect.color.a
+						);
+				SDL_RenderFillRect(ren, &rectRect);
+				break;
+			}
+		default:
+			break;
 	}
 
 	int cursorX;
@@ -2365,6 +2469,9 @@ E_SELECT_fd:
 					setModeCanvas(C_LINE);
 					goto cleanupNoError;
 				case SDLK_w:
+					setModeCanvas(C_RECT);
+					goto cleanupNoError;
+				case SDLK_q:
 					setModeCanvas(C_FILL);
 					goto cleanupNoError;
 				default:
@@ -2378,6 +2485,7 @@ E_SELECT_fd:
 					SDL_Color *color;
 					case C_PIXEL:
 					case C_LINE:
+					case C_RECT:
 					case C_FILL:
 						SDL_GetMouseState(&mx, &my);
 						cursorX = TO_COORD_EASEL_X(mx);
@@ -2473,6 +2581,40 @@ E_SELECT_fd:
 							state.drag.drawLine.color =
 								state.colors.a;
 							setDrag(D_DRAWLINE);
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_RECT:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							resetDrag();
+							state.drag.drawRect.key = KEY_F;
+							state.drag.drawRect.color =
+								state.colors.f;
+							setDrag(D_DRAWRECT);
+							break;
+						case SDLK_d:
+							resetDrag();
+							state.drag.drawRect.key = KEY_D;
+							state.drag.drawRect.color =
+								state.colors.d;
+							setDrag(D_DRAWRECT);
+							break;
+						case SDLK_s:
+							resetDrag();
+							state.drag.drawRect.key = KEY_S;
+							state.drag.drawRect.color =
+								state.colors.s;
+							setDrag(D_DRAWRECT);
+							break;
+						case SDLK_a:
+							resetDrag();
+							state.drag.drawRect.key = KEY_A;
+							state.drag.drawRect.color =
+								state.colors.a;
+							setDrag(D_DRAWRECT);
 							break;
 						default:
 							break;
@@ -2731,6 +2873,28 @@ int eventKeyUp(SDL_Event *e)
 							break;
 						case SDLK_a:
 							if (state.drag.drawLine.key == KEY_A)
+								setDrag(D_NONE);
+							break;
+						default:
+							break;
+					}
+					break;
+				case C_RECT:
+					switch (e->key.keysym.sym) {
+						case SDLK_f:
+							if (state.drag.drawRect.key == KEY_F)
+								setDrag(D_NONE);
+							break;
+						case SDLK_d:
+							if (state.drag.drawRect.key == KEY_D)
+								setDrag(D_NONE);
+							break;
+						case SDLK_s:
+							if (state.drag.drawRect.key == KEY_S)
+								setDrag(D_NONE);
+							break;
+						case SDLK_a:
+							if (state.drag.drawRect.key == KEY_A)
 								setDrag(D_NONE);
 							break;
 						default:
@@ -3035,6 +3199,10 @@ int cursorMotion(int cursorX, int cursorY)
 					);
 				break;
 			}
+		case D_DRAWRECT:
+			state.drag.drawRect.currX = cursorX;
+			state.drag.drawRect.currY = cursorY;
+			break;
 		default:
 			break;
 	}
