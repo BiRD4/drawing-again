@@ -82,14 +82,6 @@ struct {
 	int blend;
 
 	struct {
-		struct {
-			Uint32 type;
-			Sint32 x;
-			Sint32 y;
-		} cursorMotion;
-	} event;
-
-	struct {
 		int x;
 		int y;
 		int s;
@@ -175,9 +167,6 @@ struct {
 
 } state = {
 	0, 0, 0, 0, 1,
-	{
-		{0, 0, 0}
-	},
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL, P_F,
 	{
@@ -282,10 +271,6 @@ int init()
 
 	SDL_DestroyRenderer(rulerRen);
 	SDL_FreeSurface(rulerSurf);
-
-	state.event.cursorMotion.type = SDL_RegisterEvents(1);
-	if (state.event.cursorMotion.type == ((Uint32) -1))
-		goto cleanup;
 
 	state.drag.drawPixel.pixels = pixelArrayNew();
 
@@ -2762,16 +2747,10 @@ int eventMouseMotion(SDL_Event *e)
 		|| TO_COORD_EASEL_Y(e->motion.y) !=
 		   TO_COORD_EASEL_Y(e->motion.y - e->motion.yrel)
 	   ) {
-		state.event.cursorMotion.x = TO_COORD_EASEL_X(e->motion.x);
-		state.event.cursorMotion.y = TO_COORD_EASEL_Y(e->motion.y);
-		SDL_Event event;
-		Uint8 *ptr = &event;
-		for (int i = 0; i < sizeof (event); ++i)
-			ptr[i] = 0;
-		event.user.type = state.event.cursorMotion.type;
-		event.user.data1 = &state.event.cursorMotion.x;
-		event.user.data2 = &state.event.cursorMotion.y;
-		SDL_PushEvent(&event);
+		cursorMotion(
+				TO_COORD_EASEL_X(e->motion.x),
+				TO_COORD_EASEL_Y(e->motion.y)
+			    );
 	}
 
 	switch (state.drag.action) {
@@ -2890,12 +2869,9 @@ cleanup:
 	return flag;
 }
 
-int eventCursorMotion(SDL_Event *e)
+int cursorMotion(int cursorX, int cursorY)
 {
 	int flag = 0;
-
-	Sint32 cursorX = *((Sint32 *) e->user.data1);
-	Sint32 cursorY = *((Sint32 *) e->user.data2);
 
 	switch (state.drag.action) {
 		case D_CANVASNEW:
@@ -3052,12 +3028,6 @@ int eventDo(SDL_Event *e)
 			case SDL_RENDER_DEVICE_RESET:
 				if (!eventRender(e))
 					goto cleanup;
-				break;
-			case SDL_USEREVENT:
-				if (e->user.type == state.event.cursorMotion.type) {
-					if (!eventCursorMotion(e))
-						goto cleanup;
-				}
 				break;
 			default:
 				break;
