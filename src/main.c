@@ -7,6 +7,7 @@
 
 #define FPS 60
 #define MAX_ZOOM 64
+#define MAX_PATHLEN 1024
 #define INIT_SCALE 16
 #define INIT_WIN_WIDTH 512
 #define INIT_WIN_HEIGHT 512
@@ -45,7 +46,7 @@ struct canvas {
 	SDL_Texture *tex;
 	SDL_Surface *surf;
 	SDL_Renderer *ren;
-	char path[1024];
+	char path[MAX_PATHLEN];
 };
 
 struct pixel {
@@ -510,7 +511,7 @@ int canvasSaveAs(struct canvas *c)
 	if (!path)
 		goto cleanup;
 	int i;
-	for (i = 0; path[i] != '\0' && i < 1023; ++i)
+	for (i = 0; path[i] != '\0' && i < MAX_PATHLEN - 1; ++i)
 		c->path[i] = path[i];
 	c->path[i] = '\0';
 	canvasSave(c);
@@ -528,7 +529,7 @@ int canvasOpen(struct canvas *c)
 	if (!path)
 		goto cleanup;
 	int i;
-	for (i = 0; path[i] != '\0' && i < 1023; ++i)
+	for (i = 0; path[i] != '\0' && i < MAX_PATHLEN - 1; ++i)
 		c->path[i] = path[i];
 	c->path[i] = '\0';
 	canvasLoad(c);
@@ -804,7 +805,7 @@ int canvasArrayOpen(struct canvasArray *ca)
 	while (!done && i < ca->size) {
 		int k = 0;
 		while (!done && *ch != '|') {
-			if (k < 1023)
+			if (k < MAX_PATHLEN - 1)
 				ca->array[i]->path[k++] = *ch;
 			if (*ch++ == '\0')
 				done = 1;
