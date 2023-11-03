@@ -3143,6 +3143,8 @@ int cursorMotion(int cursorX, int cursorY)
 			break;
 		case D_DRAWLINE:
 			{
+				SDL_Color color = state.drag.drawLine.color;
+				color.a = SDL_ALPHA_OPAQUE;
 				state.drag.drawLine.currX = cursorX;
 				state.drag.drawLine.currY = cursorY;
 				canvasClear(state.drag.drawLine.preview);
@@ -3194,7 +3196,7 @@ int cursorMotion(int cursorX, int cursorY)
 				pixelArrayDo(
 					state.drag.drawLine.pixels,
 					state.drag.drawLine.previewArr,
-					state.drag.drawLine.color
+					color
 					);
 				break;
 			}
