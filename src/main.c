@@ -1439,7 +1439,7 @@ int setDrag(enum ActionDrag action)
 						TO_COORD_EASEL_X(mx),
 						TO_COORD_EASEL_Y(my),
 						1, 1
-						);
+					     );
 				if (!c)
 					goto cleanup;
 				canvasArrayAppend(state.canvasArr, c);
@@ -1516,7 +1516,7 @@ int setDrag(enum ActionDrag action)
 						state.drag.drawLine.initX,
 						state.drag.drawLine.initY,
 						1, 1
-						);
+					  );
 				canvasFix(state.drag.drawLine.preview);
 				pixelArrayReset(state.drag.drawLine.previewPixels);
 				break;
@@ -2506,47 +2506,54 @@ C_FILL_fdsa:
 					break;
 				case SDLK_r:
 					mode = P_F;
+					if (!state.space)
+						goto S_PICK_rewq;
 					tmp = state.colors.f;
 					swap = &state.colors.f;
-					goto S_PICK_rewq;
+					goto S_PICK_rewq_space;
 				case SDLK_e:
 					mode = P_D;
+					if (!state.space)
+						goto S_PICK_rewq;
 					tmp = state.colors.d;
 					swap = &state.colors.d;
-					goto S_PICK_rewq;
+					goto S_PICK_rewq_space;
 				case SDLK_w:
 					mode = P_S;
+					if (!state.space)
+						goto S_PICK_rewq;
 					tmp = state.colors.s;
 					swap = &state.colors.s;
-					goto S_PICK_rewq;
+					goto S_PICK_rewq_space;
 				case SDLK_q:
 					mode = P_A;
+					if (!state.space)
+						goto S_PICK_rewq;
 					tmp = state.colors.a;
 					swap = &state.colors.a;
-					goto S_PICK_rewq;
-S_PICK_rewq:
-					if (state.space) {
-						switch (state.modePick) {
-							case P_F:
-								*swap = state.colors.f;
-								state.colors.f = tmp;
-								break;
-							case P_D:
-								*swap = state.colors.d;
-								state.colors.d = tmp;
-								break;
-							case P_S:
-								*swap = state.colors.s;
-								state.colors.s = tmp;
-								break;
-							case P_A:
-								*swap = state.colors.a;
-								state.colors.a = tmp;
-								break;
-							default:
-								break;
-						}
+					goto S_PICK_rewq_space;
+S_PICK_rewq_space:
+					switch (state.modePick) {
+						case P_F:
+							*swap = state.colors.f;
+							state.colors.f = tmp;
+							break;
+						case P_D:
+							*swap = state.colors.d;
+							state.colors.d = tmp;
+							break;
+						case P_S:
+							*swap = state.colors.s;
+							state.colors.s = tmp;
+							break;
+						case P_A:
+							*swap = state.colors.a;
+							state.colors.a = tmp;
+							break;
+						default:
+							break;
 					}
+S_PICK_rewq:
 					setModePick(mode);
 					break;
 				case SDLK_f:
@@ -2931,17 +2938,17 @@ int eventCursorMotion(SDL_Event *e)
 			{
 				pixelArrayReset(state.drag.drawPixel.pixels);
 				pixelArrayLine(
-						state.drag.drawPixel.pixels,
-						state.drag.drawPixel.initX,
-						state.drag.drawPixel.initY,
-						cursorX, cursorY, 1
-					      );
+					state.drag.drawPixel.pixels,
+					state.drag.drawPixel.initX,
+					state.drag.drawPixel.initY,
+					cursorX, cursorY, 1
+					);
 				pixelArrayDo(
-						state.drag.drawPixel.pixels,
-						(state.canvasSel->size == 0)
-						? state.canvasArr : state.canvasSel,
-						state.drag.drawPixel.color
-					    );
+					state.drag.drawPixel.pixels,
+					(state.canvasSel->size == 0)
+					? state.canvasArr : state.canvasSel,
+					state.drag.drawPixel.color
+					);
 				state.drag.drawPixel.initX = cursorX;
 				state.drag.drawPixel.initY = cursorY;
 				break;
@@ -2954,53 +2961,53 @@ int eventCursorMotion(SDL_Event *e)
 				if (cursorX >= state.drag.drawLine.initX) {
 					if (cursorY >= state.drag.drawLine.initY) {
 						canvasMove(
-								state.drag.drawLine.preview,
-								state.drag.drawLine.initX,
-								state.drag.drawLine.initY,
-								cursorX - state.drag.drawLine.initX + 1,
-								cursorY - state.drag.drawLine.initY + 1
-							  );
+							state.drag.drawLine.preview,
+							state.drag.drawLine.initX,
+							state.drag.drawLine.initY,
+							cursorX - state.drag.drawLine.initX + 1,
+							cursorY - state.drag.drawLine.initY + 1
+							);
 					} else {
 						canvasMove(
-								state.drag.drawLine.preview,
-								state.drag.drawLine.initX,
-								cursorY,
-								cursorX - state.drag.drawLine.initX + 1,
-								state.drag.drawLine.initY - cursorY + 1
-							  );
+							state.drag.drawLine.preview,
+							state.drag.drawLine.initX,
+							cursorY,
+							cursorX - state.drag.drawLine.initX + 1,
+							state.drag.drawLine.initY - cursorY + 1
+							);
 					}
 				} else {
 					if (cursorY >= state.drag.drawLine.initY) {
 						canvasMove(
-								state.drag.drawLine.preview,
-								cursorX,
-								state.drag.drawLine.initY,
-								state.drag.drawLine.initX - cursorX + 1,
-								cursorY - state.drag.drawLine.initY + 1
-							  );
+							state.drag.drawLine.preview,
+							cursorX,
+							state.drag.drawLine.initY,
+							state.drag.drawLine.initX - cursorX + 1,
+							cursorY - state.drag.drawLine.initY + 1
+							);
 					} else {
 						canvasMove(
-								state.drag.drawLine.preview,
-								cursorX,
-								cursorY,
-								state.drag.drawLine.initX - cursorX + 1,
-								state.drag.drawLine.initY - cursorY + 1
-							  );
+							state.drag.drawLine.preview,
+							cursorX,
+							cursorY,
+							state.drag.drawLine.initX - cursorX + 1,
+							state.drag.drawLine.initY - cursorY + 1
+							);
 					}
 				}
 				canvasFix(state.drag.drawLine.preview);
 				pixelArrayReset(state.drag.drawLine.previewPixels);
 				pixelArrayLine(
-						state.drag.drawLine.previewPixels,
-						state.drag.drawLine.initX,
-						state.drag.drawLine.initY,
-						cursorX, cursorY, 0
-					      );
+					state.drag.drawLine.previewPixels,
+					state.drag.drawLine.initX,
+					state.drag.drawLine.initY,
+					cursorX, cursorY, 0
+					);
 				pixelArrayDo(
-						state.drag.drawLine.previewPixels,
-						state.drag.drawLine.previewArr,
-						state.drag.drawLine.color
-					    );
+					state.drag.drawLine.previewPixels,
+					state.drag.drawLine.previewArr,
+					state.drag.drawLine.color
+					);
 				break;
 			}
 		default:
