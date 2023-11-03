@@ -1304,8 +1304,8 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 				SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
 			SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 			SDL_SetRenderTarget(ren, c->tex);
-			SDL_RenderDrawPoint(ren, j, i);
-			SDL_RenderDrawPoint(c->ren, j, i);
+			SDL_RenderDrawPoint(ren, pm->x - c->x + j, pm->y - c->y + i);
+			SDL_RenderDrawPoint(c->ren, pm->x - c->x + j, pm->y - c->y + i);
 		}
 	}
 	SDL_SetRenderTarget(ren, NULL);
