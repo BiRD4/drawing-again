@@ -145,7 +145,6 @@ struct {
 			struct pixelArray *pixels;
 			struct canvas *preview;
 			struct canvasArray *previewArr;
-			struct pixelArray *previewPixels;
 		} drawLine;
 		struct {
 			int pickRed;
@@ -281,7 +280,6 @@ int init()
 			state.drag.drawLine.previewArr,
 			state.drag.drawLine.preview
 			);
-	state.drag.drawLine.previewPixels = pixelArrayNew();
 
 	state.canvasArr = canvasArrayNew();
 	state.canvasSel = canvasArrayNew();
@@ -1368,13 +1366,6 @@ int setDrag(enum ActionDrag action)
 		case D_DRAWPIXEL:
 			break;
 		case D_DRAWLINE:
-			pixelArrayLine(
-					state.drag.drawLine.pixels,
-					state.drag.drawLine.initX,
-					state.drag.drawLine.initY,
-					state.drag.drawLine.currX,
-					state.drag.drawLine.currY, 0
-				      );
 			pixelArrayDo(
 					state.drag.drawLine.pixels,
 					(state.canvasSel->size == 0)
@@ -1494,6 +1485,8 @@ int setDrag(enum ActionDrag action)
 				SDL_GetMouseState(&mx, &my);
 				state.drag.drawLine.initX = TO_COORD_EASEL_X(mx);
 				state.drag.drawLine.initY = TO_COORD_EASEL_Y(my);
+				state.drag.drawLine.currX = state.drag.drawLine.initX;
+				state.drag.drawLine.currY = state.drag.drawLine.initY;
 				pixelArrayReset(state.drag.drawLine.pixels);
 				canvasClear(state.drag.drawLine.preview);
 				canvasMove(
@@ -1503,7 +1496,6 @@ int setDrag(enum ActionDrag action)
 						1, 1
 					  );
 				canvasFix(state.drag.drawLine.preview);
-				pixelArrayReset(state.drag.drawLine.previewPixels);
 				break;
 			}
 		case D_PICK:
@@ -2980,15 +2972,15 @@ int cursorMotion(int cursorX, int cursorY)
 					}
 				}
 				canvasFix(state.drag.drawLine.preview);
-				pixelArrayReset(state.drag.drawLine.previewPixels);
+				pixelArrayReset(state.drag.drawLine.pixels);
 				pixelArrayLine(
-					state.drag.drawLine.previewPixels,
+					state.drag.drawLine.pixels,
 					state.drag.drawLine.initX,
 					state.drag.drawLine.initY,
 					cursorX, cursorY, 0
 					);
 				pixelArrayDo(
-					state.drag.drawLine.previewPixels,
+					state.drag.drawLine.pixels,
 					state.drag.drawLine.previewArr,
 					state.drag.drawLine.color
 					);
