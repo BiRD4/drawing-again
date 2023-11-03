@@ -1943,14 +1943,14 @@ int frameDo()
 						state.drag.drawRect.initX
 						);
 					w = TO_COORD_SCREEN_X(
-						state.drag.drawRect.currX
+						state.drag.drawRect.currX + 1
 						) - x;
 				} else {
 					x = TO_COORD_SCREEN_X(
 						state.drag.drawRect.currX
 						);
 					w = TO_COORD_SCREEN_X(
-						state.drag.drawRect.initX
+						state.drag.drawRect.initX + 1
 						) - x;
 				}
 				if (state.drag.drawRect.currY
@@ -1959,14 +1959,14 @@ int frameDo()
 						state.drag.drawRect.initY
 						);
 					h = TO_COORD_SCREEN_Y(
-						state.drag.drawRect.currY
+						state.drag.drawRect.currY + 1
 						) - y;
 				} else {
 					y = TO_COORD_SCREEN_Y(
 						state.drag.drawRect.currY
 						);
 					h = TO_COORD_SCREEN_Y(
-						state.drag.drawRect.initY
+						state.drag.drawRect.initY + 1
 						) - y;
 				}
 				SDL_Rect rectRect = {x, y, w, h};
