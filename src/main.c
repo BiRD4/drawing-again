@@ -1145,7 +1145,7 @@ cleanup:
 	return flag;
 }
 
-struct pixelMask *pixelMaskNew(int x, int y, int w, int h)
+struct pixelMask *pixelMaskNew(int x, int y, int w, int h, Uint8 initVal)
 {
 	if (w < 1 || h < 1)
 		return NULL;
@@ -1160,7 +1160,7 @@ struct pixelMask *pixelMaskNew(int x, int y, int w, int h)
 		return NULL;
 	}
 	for (int i = 0; i < pm->w * pm->h; ++i) {
-		pm->array[i] = 0;
+		pm->array[i] = initVal;
 	}
 	return pm;
 }
@@ -2510,7 +2510,7 @@ C_FILL_fdsa:
 								goto cleanupNoError;
 							ca = canvasArrayNew();
 							canvasArrayAppend(ca, c);
-							pm = pixelMaskNew(c->x, c->y, c->w, c->h);
+							pm = pixelMaskNew(c->x, c->y, c->w, c->h, 0);
 							pixelMaskFill(pm, c, easelX, easelY);
 							pixelMaskDo(pm, ca, color);
 							pixelMaskFree(pm);
