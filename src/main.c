@@ -1390,24 +1390,22 @@ int setDrag(enum ActionDrag action)
 			break;
 		case D_DRAWRECT:
 			{
-				struct pixelMask *pm;
+				int x, y, w, h;
 				if (state.drag.drawRect.currX >= state.drag.drawRect.initX) {
-					pm = pixelMaskNew(
-						state.drag.drawRect.initX,
-						state.drag.drawRect.initY,
-						state.drag.drawRect.currX - state.drag.drawRect.initX + 1,
-						state.drag.drawRect.currY - state.drag.drawRect.initY + 1,
-						1
-						);
+						x = state.drag.drawRect.initX;
+						w = state.drag.drawRect.currX - state.drag.drawRect.initX + 1;
 				} else {
-					pm = pixelMaskNew(
-						state.drag.drawRect.currX,
-						state.drag.drawRect.currY,
-						state.drag.drawRect.initX - state.drag.drawRect.currX + 1,
-						state.drag.drawRect.initY - state.drag.drawRect.currY + 1,
-						1
-						);
+						x = state.drag.drawRect.currX;
+						w = state.drag.drawRect.initX - state.drag.drawRect.currX + 1;
 				}
+				if (state.drag.drawRect.currY >= state.drag.drawRect.initY) {
+						y = state.drag.drawRect.initY;
+						h = state.drag.drawRect.currY - state.drag.drawRect.initY + 1;
+				} else {
+						y = state.drag.drawRect.currY;
+						h = state.drag.drawRect.initY - state.drag.drawRect.currY + 1;
+				}
+				struct pixelMask *pm = pixelMaskNew(x, y, w, h, 1);
 				struct canvasArray *ca =
 					(state.canvasSel->size == 0)
 					? state.canvasArr
