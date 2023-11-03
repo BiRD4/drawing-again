@@ -2209,14 +2209,17 @@ int eventKeyDown(SDL_Event *e)
 					canvasArrayOpen(state.canvasSel);
 				} else {
 					SDL_GetMouseState(&mx, &my);
+					int cursorX = TO_COORD_EASEL_X(mx);
+					int cursorY = TO_COORD_EASEL_Y(my);
 					c = canvasArrayFind(
 							state.canvasArr,
-							TO_COORD_EASEL_X(mx),
-							TO_COORD_EASEL_Y(my)
+							cursorX, cursorY
 							);
-					if (c) {
-						canvasOpen(c);
+					if (!c) {
+						c = canvasNew(cursorX, cursorY, 1, 1);
+						canvasArrayAppend(state.canvasArr, c);
 					}
+					canvasOpen(c);
 				}
 				break;
 			case SDLK_s:
