@@ -45,7 +45,7 @@ struct canvas {
 	SDL_Texture *tex;
 	SDL_Surface *surf;
 	SDL_Renderer *ren;
-	char *path;
+	char path[1024];
 };
 
 struct pixel {
@@ -427,7 +427,7 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	if (!c->ren)
 		goto cleanup_ren;
 	SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
-	c->path = NULL;
+	c->path[0] = '\0';
 	return c;
 
 cleanup_ren:
@@ -509,7 +509,10 @@ int canvasSaveAs(struct canvas *c)
 	char *path = dialogFileSave("Save as", c->path);
 	if (!path)
 		goto cleanup;
-	c->path = path;
+	int i;
+	for (i = 0; path[i] != '\0' && i < 1023; ++i)
+		c->path[i] = path[i];
+	c->path[i] = '\0';
 	canvasSave(c);
 
 	flag = 1;
@@ -524,7 +527,10 @@ int canvasOpen(struct canvas *c)
 	char *path = dialogFileOpen("Open file", c->path, 0);
 	if (!path)
 		goto cleanup;
-	c->path = path;
+	int i;
+	for (i = 0; path[i] != '\0' && i < 1023; ++i)
+		c->path[i] = path[i];
+	c->path[i] = '\0';
 	canvasLoad(c);
 
 	flag = 1;
