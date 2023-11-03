@@ -1971,6 +1971,14 @@ int frameDo()
 		}
 		rectColor.x += rectColor.w;
 	}
+	if (state.blend) {
+		SDL_Rect rectBlend = {
+			rectColor.x + 8, rectColor.y + 8,
+			rectColor.w - 16, rectColor.h - 16
+		};
+		SDL_SetRenderDrawColor(ren, 255, 255, 255, 127);
+		SDL_RenderFillRect(ren, &rectBlend);
+	}
 
 	if (state.scope == S_PICK) {
 		SDL_Color color;
