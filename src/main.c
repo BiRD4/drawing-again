@@ -3212,7 +3212,7 @@ int cursorMotion(int cursorX, int cursorY)
 				pixelArrayDo(
 					state.drag.drawLine.pixels,
 					state.drag.drawLine.previewArr,
-					color, 0
+					state.drag.drawLine.color, 0
 					);
 				break;
 			}
