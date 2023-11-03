@@ -2050,36 +2050,35 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
-	SDL_Rect rectColors = {0, 0, 129, 33};
-	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderFillRect(ren, &rectColors);
-
 	SDL_Color colors[4] = {
 		state.colors.a, state.colors.s, state.colors.d, state.colors.f
 	};
-	SDL_Rect rectColor = {0, 0, 32, 32};
+	SDL_Rect rectColor = {0, 0, 32, 16};
 	for (int i = 0; i < 4; ++i) {
 		SDL_SetRenderDrawColor(
 				ren,
 				colors[i].r, colors[i].g,
 				colors[i].b, colors[i].a
 				);
+		if (state.scope == S_PICK && 3 - i == state.modePick)
+				rectColor.y += rectColor.h - 1;
 		SDL_RenderFillRect(ren, &rectColor);
-		if (state.scope == S_PICK) {
-			if (3 - i == state.modePick) {
-				SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawRect(ren, &rectColor);
-			}
-		}
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderDrawRect(ren, &rectColor);
+		if (state.scope == S_PICK && 3 - i == state.modePick)
+				rectColor.y -= rectColor.h - 1;
 		rectColor.x += rectColor.w;
 	}
+
 	if (state.blend) {
 		SDL_Rect rectBlend = {
-			rectColor.x + 8, rectColor.y + 8,
-			rectColor.w - 16, rectColor.h - 16
+			rectColor.x + rectColor.w / 4, rectColor.y + rectColor.h / 4,
+			rectColor.w / 2, rectColor.h / 2
 		};
-		SDL_SetRenderDrawColor(ren, 255, 255, 255, 127);
+		SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
 		SDL_RenderFillRect(ren, &rectBlend);
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderDrawRect(ren, &rectBlend);
 	}
 
 	if (state.scope == S_PICK) {
@@ -2110,7 +2109,7 @@ int frameDo()
 		for (int i = 0; i < 4; ++i) {
 			SDL_Rect rectRuler = drawRuler(
 					ren, 256,
-					rectColor.w * i, rectColors.h + channels[i],
+					rectColor.w * i, rectColor.h * 2 + channels[i],
 					1, 4, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
 					);
 			SDL_SetRenderDrawColor(
@@ -2121,7 +2120,7 @@ int frameDo()
 			SDL_RenderFillRect(ren, &rectRuler);
 		}
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-		SDL_RenderDrawLine(ren, 0, rectColors.h + 255, 128, rectColors.h + 255);
+		SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 255, 128, rectColor.h * 2 + 255);
 	}
 
 	SDL_RenderPresent(ren);
