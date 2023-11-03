@@ -170,9 +170,7 @@ struct {
 
 } state = {
 	0, 0, 0, 0, 1,
-	{
-		{0}
-	},
+	{{0}},
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL, P_F,
 	{
