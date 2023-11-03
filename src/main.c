@@ -790,6 +790,36 @@ struct canvas *canvasArrayFind(struct canvasArray *ca, int x, int y)
 	return NULL;
 }
 
+int canvasArrayOpen(struct canvasArray *ca)
+{
+	int flag = 0;
+
+	char *paths = dialogFileOpen("Open files", NULL, 1);
+	if (!paths)
+		goto cleanup;
+
+	int done = 0;
+	int i = 0;
+	char *ch = paths;
+	while (!done && i < ca->size) {
+		int k = 0;
+		while (!done && *ch != '|') {
+			if (k < 1023)
+				ca->array[i]->path[k++] = *ch;
+			if (*ch++ == '\0')
+				done = 1;
+		}
+		ch++;
+		ca->array[i]->path[k] = '\0';
+		canvasLoad(ca->array[i++]);
+	}
+
+cleanupNoError:
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 struct pixelArray *pixelArrayNew()
 {
 	struct pixelArray *pa = malloc(sizeof (struct pixelArray));
@@ -2033,9 +2063,7 @@ int eventKeyDown(SDL_Event *e)
 			struct canvas *c;
 			case SDLK_e:
 				if (state.canvasSel->size != 0) {
-					MAP_CANVASES(state.canvasSel, i, c) {
-						canvasOpen(c);
-					}
+					canvasArrayOpen(state.canvasSel);
 				} else {
 					SDL_GetMouseState(&mx, &my);
 					c = canvasArrayFind(
