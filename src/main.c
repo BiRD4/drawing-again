@@ -1934,6 +1934,8 @@ int frameDo()
 			}
 		case D_DRAWRECT:
 			{
+				if (!state.blend)
+					SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 				int x, y, w, h;
 				if (state.drag.drawRect.currX
 				 >= state.drag.drawRect.initX) {
@@ -1976,6 +1978,7 @@ int frameDo()
 						state.drag.drawRect.color.a
 						);
 				SDL_RenderFillRect(ren, &rectRect);
+				SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 				break;
 			}
 		default:
