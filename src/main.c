@@ -1917,21 +1917,21 @@ int frameDo()
 	switch (state.drag.action) {
 		case D_DRAWLINE:
 			{
-				struct canvas *c = state.drag.drawLine.preview;
+				struct canvas *preview = state.drag.drawLine.preview;
 				int tw, th;
-				SDL_QueryTexture(c->tex, NULL, NULL, &tw, &th);
+				SDL_QueryTexture(preview->tex, NULL, NULL, &tw, &th);
 				SDL_Rect rectSrc = {
 					0, 0,
-					(c->w >= tw) ? tw : c->w,
-					(c->h >= th) ? th : c->h
+					(preview->w >= tw) ? tw : preview->w,
+					(preview->h >= th) ? th : preview->h
 				};
 				SDL_Rect rectDst = {
-					TO_COORD_SCREEN_X(c->x),
-					TO_COORD_SCREEN_Y(c->y),
+					TO_COORD_SCREEN_X(preview->x),
+					TO_COORD_SCREEN_Y(preview->y),
 					state.easel.s * rectSrc.w,
 					state.easel.s * rectSrc.h
 				};
-				SDL_RenderCopy(ren, c->tex, &rectSrc, &rectDst);
+				SDL_RenderCopy(ren, preview->tex, &rectSrc, &rectDst);
 				break;
 			}
 		case D_DRAWRECT:
