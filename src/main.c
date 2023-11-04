@@ -480,8 +480,10 @@ int canvasLoad(struct canvas *c)
 	if (!newSurf)
 		goto cleanup;
 	SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
-	if (!newRen)
+	if (!newRen) {
+		SDL_FreeSurface(newSurf);
 		goto cleanup;
+	}
 	SDL_SetRenderDrawBlendMode(newRen, SDL_BLENDMODE_BLEND);
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
