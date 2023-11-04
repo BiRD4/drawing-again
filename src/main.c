@@ -818,50 +818,6 @@ cleanup:
 	return flag;
 }
 
-int fileOpen(char *file)
-{
-	int flag = 0;
-	if (!file)
-		goto cleanup;
-
-	int x = TO_COORD_EASEL_X(0);
-	int y = TO_COORD_EASEL_Y(33);
-
-checkX:
-	{
-		struct canvas *c = canvasArrayFind(state.canvasSel, x, y);
-		if (c
-		 && c->x == x
-		 && c->y == y) {
-			x += c->w + 1;
-			goto checkX;
-		}
-	}
-
-	struct canvas *c = canvasNew(x, y, 1, 1);
-	canvasArrayAppend(state.canvasArr, c);
-	canvasArrayAppend(state.canvasSel, c);
-	c->isSel = 1;
-
-	int i;
-	for (i = 0; file[i] != '\0'; ++i) {
-		if (i == MAX_PATHLEN - 1) {
-			canvasDel(c);
-			goto cleanup;
-		}
-		c->path[i] = file[i];
-	}
-	c->path[i] = '\0';
-	if (!canvasLoad(c)) {
-		canvasDel(c);
-		goto cleanup;
-	}
-
-	flag = 1;
-cleanup:
-	return flag;
-}
-
 struct pixelArray *pixelArrayNew()
 {
 	struct pixelArray *pa = malloc(sizeof (struct pixelArray));
@@ -2186,30 +2142,6 @@ cleanup:
 	return flag;
 }
 
-int eventDropFile(SDL_Event *e)
-{
-	int flag = 0;
-
-	fileOpen(e->drop.file);
-	SDL_free(e->drop.file);
-
-	flag = 1;
-cleanup:
-	return flag;
-}
-
-int eventRender(SDL_Event *e)
-{
-	int flag = 0;
-
-	if (!texFix())
-		goto cleanup;
-
-	flag = 1;
-cleanup:
-	return flag;
-}
-
 int eventKeyDown(SDL_Event *e)
 {
 	int flag = 0;
@@ -2974,6 +2906,132 @@ cleanup:
 	return flag;
 }
 
+int cursorMotion(int cursorX, int cursorY)
+{
+	int flag = 0;
+
+	switch (state.drag.action) {
+		case D_CANVASNEW:
+			{
+				MAP_CANVASES(state.canvasSel, i, c) {
+					if (!c->isSel) {
+						canvasMove(
+							c, c->x, c->y,
+							cursorX - c->x,
+							cursorY - c->y
+							);
+					}
+				}
+				break;
+			}
+		case D_CANVASTRANSFORM:
+			{
+				MAP_CANVASES(state.canvasSel, i, c) {
+					int x = state.drag.canvasTransform.setX
+						? cursorX
+						+ state.drag.canvasTransform.offX[i]
+						: c->x;
+					int y = state.drag.canvasTransform.setY
+						? cursorY
+						+ state.drag.canvasTransform.offY[i]
+						: c->y;
+					int w = state.drag.canvasTransform.setW
+						? cursorX - c->x
+						+ state.drag.canvasTransform.offW[i]
+						: c->w;
+					int h = state.drag.canvasTransform.setH
+						? cursorY - c->y
+						+ state.drag.canvasTransform.offH[i]
+						: c->h;
+					canvasMove(c, x, y, w, h);
+				}
+				break;
+			}
+		case D_DRAWPIXEL:
+			pixelArrayReset(state.drag.drawPixel.pixels);
+			pixelArrayLine(
+				state.drag.drawPixel.pixels,
+				state.drag.drawPixel.initX,
+				state.drag.drawPixel.initY,
+				cursorX, cursorY, 1
+				);
+			pixelArrayDo(
+				state.drag.drawPixel.pixels,
+				(state.canvasSel->size == 0)
+				? state.canvasArr : state.canvasSel,
+				state.drag.drawPixel.color, 1
+				);
+			state.drag.drawPixel.initX = cursorX;
+			state.drag.drawPixel.initY = cursorY;
+			break;
+		case D_DRAWLINE:
+			state.drag.drawLine.currX = cursorX;
+			state.drag.drawLine.currY = cursorY;
+			canvasClear(state.drag.drawLine.preview);
+			if (cursorX >= state.drag.drawLine.initX) {
+				if (cursorY >= state.drag.drawLine.initY) {
+					canvasMove(
+						state.drag.drawLine.preview,
+						state.drag.drawLine.initX,
+						state.drag.drawLine.initY,
+						cursorX - state.drag.drawLine.initX + 1,
+						cursorY - state.drag.drawLine.initY + 1
+						);
+				} else {
+					canvasMove(
+						state.drag.drawLine.preview,
+						state.drag.drawLine.initX,
+						cursorY,
+						cursorX - state.drag.drawLine.initX + 1,
+						state.drag.drawLine.initY - cursorY + 1
+						);
+				}
+			} else {
+				if (cursorY >= state.drag.drawLine.initY) {
+					canvasMove(
+						state.drag.drawLine.preview,
+						cursorX,
+						state.drag.drawLine.initY,
+						state.drag.drawLine.initX - cursorX + 1,
+						cursorY - state.drag.drawLine.initY + 1
+						);
+				} else {
+					canvasMove(
+						state.drag.drawLine.preview,
+						cursorX,
+						cursorY,
+						state.drag.drawLine.initX - cursorX + 1,
+						state.drag.drawLine.initY - cursorY + 1
+						);
+				}
+			}
+			canvasFix(state.drag.drawLine.preview);
+			pixelArrayReset(state.drag.drawLine.pixels);
+			pixelArrayLine(
+				state.drag.drawLine.pixels,
+				state.drag.drawLine.initX,
+				state.drag.drawLine.initY,
+				cursorX, cursorY, 0
+				);
+			pixelArrayDo(
+				state.drag.drawLine.pixels,
+				state.drag.drawLine.previewArr,
+				state.drag.drawLine.color, 0
+				);
+			break;
+		case D_DRAWRECT:
+			state.drag.drawRect.currX = cursorX;
+			state.drag.drawRect.currY = cursorY;
+			break;
+		default:
+			break;
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int eventMouseMotion(SDL_Event *e)
 {
 	int flag = 0;
@@ -3106,126 +3164,68 @@ cleanup:
 	return flag;
 }
 
-int cursorMotion(int cursorX, int cursorY)
+int fileOpen(char *file)
+{
+	int flag = 0;
+	if (!file)
+		goto cleanup;
+
+	int x = TO_COORD_EASEL_X(0);
+	int y = TO_COORD_EASEL_Y(33);
+
+checkX:
+	{
+		struct canvas *c = canvasArrayFind(state.canvasSel, x, y);
+		if (c
+		 && c->x == x
+		 && c->y == y) {
+			x += c->w + 1;
+			goto checkX;
+		}
+	}
+
+	struct canvas *c = canvasNew(x, y, 1, 1);
+	canvasArrayAppend(state.canvasArr, c);
+	canvasArrayAppend(state.canvasSel, c);
+	c->isSel = 1;
+
+	int i;
+	for (i = 0; file[i] != '\0'; ++i) {
+		if (i == MAX_PATHLEN - 1) {
+			canvasDel(c);
+			goto cleanup;
+		}
+		c->path[i] = file[i];
+	}
+	c->path[i] = '\0';
+	if (!canvasLoad(c)) {
+		canvasDel(c);
+		goto cleanup;
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int eventDropFile(SDL_Event *e)
 {
 	int flag = 0;
 
-	switch (state.drag.action) {
-		case D_CANVASNEW:
-			{
-				MAP_CANVASES(state.canvasSel, i, c) {
-					if (!c->isSel) {
-						canvasMove(
-							c, c->x, c->y,
-							cursorX - c->x,
-							cursorY - c->y
-							);
-					}
-				}
-				break;
-			}
-		case D_CANVASTRANSFORM:
-			{
-				MAP_CANVASES(state.canvasSel, i, c) {
-					int x = state.drag.canvasTransform.setX
-						? cursorX
-						+ state.drag.canvasTransform.offX[i]
-						: c->x;
-					int y = state.drag.canvasTransform.setY
-						? cursorY
-						+ state.drag.canvasTransform.offY[i]
-						: c->y;
-					int w = state.drag.canvasTransform.setW
-						? cursorX - c->x
-						+ state.drag.canvasTransform.offW[i]
-						: c->w;
-					int h = state.drag.canvasTransform.setH
-						? cursorY - c->y
-						+ state.drag.canvasTransform.offH[i]
-						: c->h;
-					canvasMove(c, x, y, w, h);
-				}
-				break;
-			}
-		case D_DRAWPIXEL:
-			pixelArrayReset(state.drag.drawPixel.pixels);
-			pixelArrayLine(
-				state.drag.drawPixel.pixels,
-				state.drag.drawPixel.initX,
-				state.drag.drawPixel.initY,
-				cursorX, cursorY, 1
-				);
-			pixelArrayDo(
-				state.drag.drawPixel.pixels,
-				(state.canvasSel->size == 0)
-				? state.canvasArr : state.canvasSel,
-				state.drag.drawPixel.color, 1
-				);
-			state.drag.drawPixel.initX = cursorX;
-			state.drag.drawPixel.initY = cursorY;
-			break;
-		case D_DRAWLINE:
-			state.drag.drawLine.currX = cursorX;
-			state.drag.drawLine.currY = cursorY;
-			canvasClear(state.drag.drawLine.preview);
-			if (cursorX >= state.drag.drawLine.initX) {
-				if (cursorY >= state.drag.drawLine.initY) {
-					canvasMove(
-						state.drag.drawLine.preview,
-						state.drag.drawLine.initX,
-						state.drag.drawLine.initY,
-						cursorX - state.drag.drawLine.initX + 1,
-						cursorY - state.drag.drawLine.initY + 1
-						);
-				} else {
-					canvasMove(
-						state.drag.drawLine.preview,
-						state.drag.drawLine.initX,
-						cursorY,
-						cursorX - state.drag.drawLine.initX + 1,
-						state.drag.drawLine.initY - cursorY + 1
-						);
-				}
-			} else {
-				if (cursorY >= state.drag.drawLine.initY) {
-					canvasMove(
-						state.drag.drawLine.preview,
-						cursorX,
-						state.drag.drawLine.initY,
-						state.drag.drawLine.initX - cursorX + 1,
-						cursorY - state.drag.drawLine.initY + 1
-						);
-				} else {
-					canvasMove(
-						state.drag.drawLine.preview,
-						cursorX,
-						cursorY,
-						state.drag.drawLine.initX - cursorX + 1,
-						state.drag.drawLine.initY - cursorY + 1
-						);
-				}
-			}
-			canvasFix(state.drag.drawLine.preview);
-			pixelArrayReset(state.drag.drawLine.pixels);
-			pixelArrayLine(
-				state.drag.drawLine.pixels,
-				state.drag.drawLine.initX,
-				state.drag.drawLine.initY,
-				cursorX, cursorY, 0
-				);
-			pixelArrayDo(
-				state.drag.drawLine.pixels,
-				state.drag.drawLine.previewArr,
-				state.drag.drawLine.color, 0
-				);
-			break;
-		case D_DRAWRECT:
-			state.drag.drawRect.currX = cursorX;
-			state.drag.drawRect.currY = cursorY;
-			break;
-		default:
-			break;
-	}
+	fileOpen(e->drop.file);
+	SDL_free(e->drop.file);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int eventRender(SDL_Event *e)
+{
+	int flag = 0;
+
+	if (!texFix())
+		goto cleanup;
 
 	flag = 1;
 cleanup:
