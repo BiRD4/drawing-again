@@ -83,10 +83,6 @@ struct {
 
 	struct {
 		int x;
-	} drop;
-
-	struct {
-		int x;
 		int y;
 		int s;
 
@@ -179,7 +175,6 @@ struct {
 
 } state = {
 	0, 0, 0, 0, 1,
-	{{0}},
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL, P_F,
 	{
@@ -818,6 +813,50 @@ int canvasArrayOpen(struct canvasArray *ca)
 	}
 
 cleanupNoError:
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int fileOpen(char *file)
+{
+	int flag = 0;
+	if (!file)
+		goto cleanup;
+
+	int x = TO_COORD_EASEL_X(0);
+	int y = TO_COORD_EASEL_Y(33);
+
+checkX:
+	{
+		struct canvas *c = canvasArrayFind(state.canvasSel, x, y);
+		if (c
+		 && c->x == x
+		 && c->y == y) {
+			x += c->w + 1;
+			goto checkX;
+		}
+	}
+
+	struct canvas *c = canvasNew(x, y, 1, 1);
+	canvasArrayAppend(state.canvasArr, c);
+	canvasArrayAppend(state.canvasSel, c);
+	c->isSel = 1;
+
+	int i;
+	for (i = 0; file[i] != '\0'; ++i) {
+		if (i == MAX_PATHLEN - 1) {
+			canvasDel(c);
+			goto cleanup;
+		}
+		c->path[i] = file[i];
+	}
+	c->path[i] = '\0';
+	if (!canvasLoad(c)) {
+		canvasDel(c);
+		goto cleanup;
+	}
+
 	flag = 1;
 cleanup:
 	return flag;
@@ -2151,40 +2190,8 @@ int eventDropFile(SDL_Event *e)
 {
 	int flag = 0;
 
-	int y = TO_COORD_EASEL_Y(33);
-
-	struct canvas *cFound;
-checkX:
-	cFound = canvasArrayFind(
-			state.canvasSel,
-			state.drop.x, y
-			);
-	if (cFound
-	 && cFound->x == state.drop.x
-	 && cFound->y == y) {
-		state.drop.x += cFound->w + 1;
-		goto checkX;
-	}
-
-	struct canvas *c = canvasNew(state.drop.x, y, 1, 1);
-	canvasArrayAppend(state.canvasArr, c);
-	canvasArrayAppend(state.canvasSel, c);
-	c->isSel = 1;
-
-	char *file = e->drop.file;
-	int i;
-	for (i = 0; file[i] != '\0'; ++i) {
-		if (i == MAX_PATHLEN - 1) {
-			canvasDel(c);
-			goto cleanup;
-		}
-		c->path[i] = file[i];
-	}
-	c->path[i] = '\0';
-	canvasLoad(c);
-	SDL_free(file);
-
-	state.drop.x += c->w + 1;
+	fileOpen(e->drop.file);
+	SDL_free(e->drop.file);
 
 	flag = 1;
 cleanup:
@@ -3256,9 +3263,6 @@ int eventDo(SDL_Event *e)
 				if (!eventDropFile(e))
 					goto cleanup;
 				break;
-			case SDL_DROPBEGIN:
-				state.drop.x = TO_COORD_EASEL_X(0);
-				break;
 			case SDL_RENDER_TARGETS_RESET:
 			case SDL_RENDER_DEVICE_RESET:
 				if (!eventRender(e))
@@ -3283,12 +3287,18 @@ int main(int argc, char **argv)
 	if (!init())
 		goto cleanup;
 
-	struct canvas *a = canvasNew(
-			(INIT_WIN_WIDTH / INIT_SCALE - INIT_CANVAS_WIDTH) / 2,
-			(INIT_WIN_HEIGHT / INIT_SCALE - INIT_CANVAS_HEIGHT) / 2,
-			INIT_CANVAS_WIDTH, INIT_CANVAS_HEIGHT
-			);
-	canvasArrayAppend(state.canvasArr, a);
+	int opened = 0;
+	for (int i = 1; i < argc; ++i)
+		opened |= fileOpen(argv[i]);
+
+	if (!opened) {
+		struct canvas *c = canvasNew(
+				(INIT_WIN_WIDTH / INIT_SCALE - INIT_CANVAS_WIDTH) / 2,
+				(INIT_WIN_HEIGHT / INIT_SCALE - INIT_CANVAS_HEIGHT) / 2,
+				INIT_CANVAS_WIDTH, INIT_CANVAS_HEIGHT
+				);
+		canvasArrayAppend(state.canvasArr, c);
+	}
 
 	Uint32 tickCurr;
 	Uint32 tickNext = 0;
