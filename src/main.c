@@ -197,6 +197,8 @@ struct {
 
 SDL_Window *win;
 SDL_Renderer *ren;
+int maxWidth;
+int maxHeight;
 
 SDL_Texture *texRuler;
 enum Side {SIDE_BOTTOM, SIDE_LEFT, SIDE_TOP, SIDE_RIGHT};
@@ -253,6 +255,10 @@ int init()
 			);
 	if (ren == NULL)
 		goto cleanup;
+	SDL_RendererInfo info;
+	SDL_GetRendererInfo(ren, &info);
+	maxWidth = info.max_texture_width;
+	maxHeight = info.max_texture_height;
 	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 
 	SDL_Surface *rulerSurf = SDL_CreateRGBSurfaceWithFormat(
@@ -395,7 +401,7 @@ void easelFix()
 struct canvas *canvasNew(int x, int y, int w, int h)
 {
 	struct canvas *c = malloc(sizeof (struct canvas));
-	if (!c)
+	if (!c || w > maxWidth || h > maxHeight)
 		return NULL;
 	c->isSel = 0;
 	c->x = x;
@@ -474,7 +480,7 @@ int canvasLoad(struct canvas *c)
 		goto cleanup;
 
 	SDL_Surface *newSurf = IMG_Load(c->path);
-	if (!newSurf)
+	if (!newSurf || newSurf->w > maxWidth || newSurf->h > maxHeight)
 		goto cleanup;
 	newSurf = SDL_ConvertSurfaceFormat(newSurf, SDL_PIXELFORMAT_ARGB32, 0);
 	if (!newSurf)
@@ -595,8 +601,14 @@ int canvasMove(struct canvas *c, int x, int y, int w, int h)
 
 	c->x = x;
 	c->y = y;
-	c->w = (w > 0) ? w : 1;
-	c->h = (h > 0) ? h : 1;
+	if (w <= maxWidth)
+		c->w = (w > 0) ? w : 1;
+	else
+		c->w = maxWidth;
+	if (h <= maxHeight)
+		c->h = (h > 0) ? h : 1;
+	else
+		c->h = maxHeight;
 
 	MAP_CANVASES(state.canvasArr, i, ci) {
 		if (c == ci) {
