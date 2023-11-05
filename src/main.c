@@ -1139,16 +1139,14 @@ int pixelArrayHas(struct pixelArray *pa, int x, int y)
 	return 0;
 }
 
-int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, int blend)
+int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, int noBlend)
 {
 	int flag = 0;
 	if (!pa || !ca)
 		goto cleanup;
 
-	if (blend)
+	if (noBlend)
 		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-	else
-		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
@@ -1157,7 +1155,7 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, i
 		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
-		if (blend)
+		if (state.blend && !noBlend)
 			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
 		else
 			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
@@ -1408,7 +1406,7 @@ int setDrag(enum ActionDrag action)
 					state.drag.drawLine.pixels,
 					(state.canvasSel->size == 0)
 					? state.canvasArr : state.canvasSel,
-					state.drag.drawLine.color, 1
+					state.drag.drawLine.color, 0
 				    );
 			break;
 		case D_DRAWRECT:
@@ -1538,7 +1536,7 @@ int setDrag(enum ActionDrag action)
 						state.drag.drawPixel.pixels,
 						(state.canvasSel->size == 0)
 						? state.canvasArr : state.canvasSel,
-						state.drag.drawPixel.color, 1
+						state.drag.drawPixel.color, 0
 					    );
 				pixelArrayReset(state.drag.drawPixel.pixels);
 				break;
@@ -2974,7 +2972,7 @@ int cursorMotion(int cursorX, int cursorY)
 				state.drag.drawPixel.pixels,
 				(state.canvasSel->size == 0)
 				? state.canvasArr : state.canvasSel,
-				state.drag.drawPixel.color, 1
+				state.drag.drawPixel.color, 0
 				);
 			state.drag.drawPixel.initX = cursorX;
 			state.drag.drawPixel.initY = cursorY;
@@ -3031,7 +3029,7 @@ int cursorMotion(int cursorX, int cursorY)
 			pixelArrayDo(
 				state.drag.drawLine.pixels,
 				state.drag.drawLine.previewArr,
-				state.drag.drawLine.color, 0
+				state.drag.drawLine.color, 1
 				);
 			break;
 		case D_DRAWRECT:
