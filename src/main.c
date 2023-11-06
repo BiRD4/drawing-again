@@ -1684,18 +1684,6 @@ int setSpace(int space)
 					SDL_SetRelativeMouseMode(SDL_TRUE);
 					break;
 				}
-			case D_CANVASNEW:
-				break;
-			case D_CANVASTRANSFORM:
-				break;
-			case D_DRAWPIXEL:
-				break;
-			case D_DRAWLINE:
-				break;
-			case D_DRAWRECT:
-				break;
-			case D_PICK:
-				break;
 			default:
 				break;
 		}
@@ -1711,18 +1699,6 @@ int setSpace(int space)
 						state.drag.panZoom.initX,
 						state.drag.panZoom.initY
 						);
-				break;
-			case D_CANVASNEW:
-				break;
-			case D_CANVASTRANSFORM:
-				break;
-			case D_DRAWPIXEL:
-				break;
-			case D_DRAWLINE:
-				break;
-			case D_DRAWRECT:
-				break;
-			case D_PICK:
 				break;
 			default:
 				break;
