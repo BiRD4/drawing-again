@@ -107,6 +107,7 @@ struct {
 			D_DRAWPIXEL,
 			D_DRAWLINE,
 			D_DRAWRECT,
+			D_EYEDROP,
 			D_PICK
 		} action;
 		struct {
@@ -156,6 +157,12 @@ struct {
 			SDL_Color color;
 		} drawRect;
 		struct {
+			int pickF;
+			int pickD;
+			int pickS;
+			int pickA;
+		} eyedrop;
+		struct {
 			int pickRed;
 			int pickGreen;
 			int pickBlue;
@@ -184,6 +191,7 @@ struct {
 		{0, 0, KEY_F, {0, 0, 0, 0}, NULL},
 		{0, 0, 0, 0, KEY_F, {0, 0, 0, 0}, NULL, NULL, NULL, NULL},
 		{0, 0, 0, 0, KEY_F, {0, 0, 0, 0}},
+		{0, 0, 0, 0},
 		{0, 0, 0, 0}
 	},
 	{
@@ -1435,6 +1443,12 @@ int setDrag(enum ActionDrag action)
 				pixelMaskFree(pm);
 				break;
 			}
+		case D_EYEDROP:
+			state.drag.eyedrop.pickF = 0;
+			state.drag.eyedrop.pickD = 0;
+			state.drag.eyedrop.pickS = 0;
+			state.drag.eyedrop.pickA = 0;
+			break;
 		case D_PICK:
 			SDL_CaptureMouse(SDL_FALSE);
 			state.drag.pick.pickRed = 0;
@@ -1570,6 +1584,8 @@ int setDrag(enum ActionDrag action)
 				state.drag.drawRect.currY = state.drag.drawRect.initY;
 				break;
 			}
+		case D_EYEDROP:
+			break;
 		case D_PICK:
 			SDL_CaptureMouse(SDL_TRUE);
 			break;
@@ -2154,6 +2170,51 @@ cleanup:
 	return flag;
 }
 
+int eyedrop()
+{
+	int flag = 0;
+
+	int mx, my;
+	SDL_GetMouseState(&mx, &my);
+	int cursorX = TO_COORD_EASEL_X(mx);
+	int cursorY = TO_COORD_EASEL_Y(my);
+	struct canvas *c = canvasArrayFind(
+			state.canvasArr,
+			cursorX, cursorY
+			);
+	if (!c)
+		goto cleanup;
+
+	SDL_Color *colors[] = {
+		&state.colors.f,
+		&state.colors.d,
+		&state.colors.s,
+		&state.colors.a
+	};
+	int picks[] = {
+		state.drag.eyedrop.pickF,
+		state.drag.eyedrop.pickD,
+		state.drag.eyedrop.pickS,
+		state.drag.eyedrop.pickA
+	};
+
+	for (int i = 0; i < 4; ++i) {
+		if (picks[i]) {
+			if (!canvasGetColor(
+					c,
+					cursorX - c->x,
+					cursorY - c->y,
+					colors[i]
+					))
+				goto cleanup;
+		}
+	}
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
 int eventKeyDown(SDL_Event *e)
 {
 	int flag = 0;
@@ -2448,43 +2509,35 @@ E_SELECT_fd:
 			}
 			if (state.space) {
 				switch (state.modeCanvas) {
-					int mx, my;
-					int cursorX, cursorY;
-					struct canvas *c;
-					SDL_Color *color;
 					case C_PIXEL:
 					case C_LINE:
 					case C_RECT:
 					case C_FILL:
-						SDL_GetMouseState(&mx, &my);
-						cursorX = TO_COORD_EASEL_X(mx);
-						cursorY = TO_COORD_EASEL_Y(my);
-						c = canvasArrayFind(
-								state.canvasArr,
-								cursorX, cursorY
-								);
 						switch (e->key.keysym.sym) {
 							case SDLK_f:
-								color = &state.colors.f;
+								state.drag.eyedrop.pickF = 1;
+								if (state.drag.action != D_EYEDROP)
+									setDrag(D_EYEDROP);
 								break;
 							case SDLK_d:
-								color = &state.colors.d;
+								state.drag.eyedrop.pickD = 1;
+								if (state.drag.action != D_EYEDROP)
+									setDrag(D_EYEDROP);
 								break;
 							case SDLK_s:
-								color = &state.colors.s;
+								state.drag.eyedrop.pickS = 1;
+								if (state.drag.action != D_EYEDROP)
+									setDrag(D_EYEDROP);
 								break;
 							case SDLK_a:
-								color = &state.colors.a;
+								state.drag.eyedrop.pickA = 1;
+								if (state.drag.action != D_EYEDROP)
+									setDrag(D_EYEDROP);
 								break;
 							default:
 								break;
 						}
-						canvasGetColor(
-							c,
-							cursorX - c->x,
-							cursorY - c->y,
-							color
-							);
+						eyedrop();
 						goto cleanupNoError;
 					default:
 						break;
@@ -2803,6 +2856,49 @@ int eventKeyUp(SDL_Event *e)
 			}
 			break;
 		case S_CANVAS:
+			if (state.space) {
+				switch (state.modeCanvas) {
+					case C_PIXEL:
+					case C_LINE:
+					case C_RECT:
+					case C_FILL:
+						switch (e->key.keysym.sym) {
+							case SDLK_f:
+								state.drag.eyedrop.pickF = 0;
+								if (state.drag.eyedrop.pickD == 0
+								 && state.drag.eyedrop.pickS == 0
+								 && state.drag.eyedrop.pickA == 0)
+									setDrag(D_NONE);
+								break;
+							case SDLK_d:
+								state.drag.eyedrop.pickD = 0;
+								if (state.drag.eyedrop.pickF == 0
+								 && state.drag.eyedrop.pickS == 0
+								 && state.drag.eyedrop.pickA == 0)
+									setDrag(D_NONE);
+								break;
+							case SDLK_s:
+								state.drag.eyedrop.pickS = 0;
+								if (state.drag.eyedrop.pickF == 0
+								 && state.drag.eyedrop.pickD == 0
+								 && state.drag.eyedrop.pickA == 0)
+									setDrag(D_NONE);
+								break;
+							case SDLK_a:
+								state.drag.eyedrop.pickA = 0;
+								if (state.drag.eyedrop.pickF == 0
+								 && state.drag.eyedrop.pickD == 0
+								 && state.drag.eyedrop.pickS == 0)
+									setDrag(D_NONE);
+								break;
+							default:
+								break;
+						}
+						break;
+					default:
+						break;
+				}
+			}
 			switch (state.modeCanvas) {
 				case C_PIXEL:
 					switch (e->key.keysym.sym) {
@@ -3035,6 +3131,9 @@ int cursorMotion(int cursorX, int cursorY)
 		case D_DRAWRECT:
 			state.drag.drawRect.currX = cursorX;
 			state.drag.drawRect.currY = cursorY;
+			break;
+		case D_EYEDROP:
+			eyedrop();
 			break;
 		default:
 			break;
