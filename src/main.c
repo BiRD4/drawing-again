@@ -2216,9 +2216,11 @@ int eventKeyDown(SDL_Event *e)
 					if (!c) {
 						c = canvasNew(cursorX, cursorY, 1, 1);
 						canvasArrayAppend(state.canvasArr, c);
+						if (!canvasOpen(c))
+							canvasDel(c);
+					} else {
+						canvasOpen(c);
 					}
-					if (!canvasOpen(c))
-						canvasDel(c);
 				}
 				break;
 			case SDLK_s:
