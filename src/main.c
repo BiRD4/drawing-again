@@ -2094,8 +2094,8 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBlend);
 	}
 
+	SDL_Color color;
 	if (state.scope == S_PICK) {
-		SDL_Color color;
 		switch (state.modePick) {
 			case P_F:
 				color = state.colors.f;
@@ -2112,29 +2112,43 @@ int frameDo()
 			default:
 				break;
 		}
-		int channels[4] = {color.a, color.b, color.g, color.r};
-		SDL_Color rulerColors[4] = {
-			{255, 255, 255, 127},
-			{  0,   0, 255, 127},
-			{  0, 255,   0, 127},
-			{255,   0,   0, 127}
-		};
-		for (int i = 0; i < 4; ++i) {
-			SDL_Rect rectRuler = drawRuler(
-					ren, 256,
-					rectColor.w * i, rectColor.h * 2 + channels[i],
-					1, 4, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
-					);
-			SDL_SetRenderDrawColor(
-					ren,
-					rulerColors[i].r, rulerColors[i].g,
-					rulerColors[i].b, rulerColors[i].a
-					);
-			SDL_RenderFillRect(ren, &rectRuler);
-		}
-		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-		SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 255, 128, rectColor.h * 2 + 255);
+	} else if (state.drag.action == D_EYEDROP) {
+		if (state.drag.eyedrop.pickF)
+			color = state.colors.f;
+		else if (state.drag.eyedrop.pickD)
+			color = state.colors.d;
+		else if (state.drag.eyedrop.pickS)
+			color = state.colors.s;
+		else if (state.drag.eyedrop.pickA)
+			color = state.colors.a;
+		else
+			goto skipChannelRulers;
+	} else {
+		goto skipChannelRulers;
 	}
+	int channels[4] = {color.a, color.b, color.g, color.r};
+	SDL_Color rulerColors[4] = {
+		{255, 255, 255, 127},
+		{  0,   0, 255, 127},
+		{  0, 255,   0, 127},
+		{255,   0,   0, 127}
+	};
+	for (int i = 0; i < 4; ++i) {
+		SDL_Rect rectRuler = drawRuler(
+				ren, 256,
+				rectColor.w * i, rectColor.h * 2 + channels[i],
+				1, 4, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
+				);
+		SDL_SetRenderDrawColor(
+				ren,
+				rulerColors[i].r, rulerColors[i].g,
+				rulerColors[i].b, rulerColors[i].a
+				);
+		SDL_RenderFillRect(ren, &rectRuler);
+	}
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 255, 128, rectColor.h * 2 + 255);
+skipChannelRulers:
 
 	SDL_RenderPresent(ren);
 
