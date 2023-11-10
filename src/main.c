@@ -37,6 +37,12 @@
         if (SDL_MUSTLOCK(s))          \
                 SDL_UnlockSurface(s);
 
+#define UPDATE_BLEND_MODE(r)                                        \
+        if (state.blend)                                            \
+                SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND); \
+        else                                                        \
+                SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
+
 struct canvas {
 	int isSel;
 	int x;
@@ -266,7 +272,6 @@ int init()
 	SDL_GetRendererInfo(ren, &info);
 	maxWidth = info.max_texture_width;
 	maxHeight = info.max_texture_height;
-	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 
 	SDL_Surface *rulerSurf = SDL_CreateRGBSurfaceWithFormat(
 			0, 256, 8, 32, SDL_PIXELFORMAT_ARGB32
@@ -433,7 +438,6 @@ struct canvas *canvasNew(int x, int y, int w, int h)
 	c->ren = SDL_CreateSoftwareRenderer(c->surf);
 	if (!c->ren)
 		goto cleanup_ren;
-	SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
 	c->path[0] = '\0';
 	return c;
 
@@ -497,7 +501,6 @@ int canvasLoad(struct canvas *c)
 		SDL_FreeSurface(newSurf);
 		goto cleanup;
 	}
-	SDL_SetRenderDrawBlendMode(newRen, SDL_BLENDMODE_BLEND);
 	SDL_DestroyRenderer(c->ren);
 	SDL_FreeSurface(c->surf);
 	c->surf = newSurf;
@@ -660,7 +663,6 @@ int canvasFix(struct canvas *c)
 		SDL_Renderer *newRen = SDL_CreateSoftwareRenderer(newSurf);
 		if (!newRen)
 			goto cleanup;
-		SDL_SetRenderDrawBlendMode(newRen, SDL_BLENDMODE_BLEND);
 		SDL_BlitSurface(c->surf, NULL, newSurf, NULL);
 		SDL_DestroyRenderer(c->ren);
 		SDL_FreeSurface(c->surf);
@@ -1152,9 +1154,11 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, i
 	if (!pa || !ca)
 		goto cleanup;
 
-	if (noBlend)
+	if (noBlend) {
 		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-
+	} else  {
+		UPDATE_BLEND_MODE(ren);
+	}
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	for (int i = 0; i < pa->size; ++i) {
@@ -1162,21 +1166,17 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, i
 		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
-		if (state.blend && !noBlend)
-			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
-		else
+		if (noBlend) {
 			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
+		} else {
+			UPDATE_BLEND_MODE(c->ren);
+		}
 		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 		SDL_SetRenderTarget(ren, c->tex);
 		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
 		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
 	}
 	SDL_SetRenderTarget(ren, NULL);
-
-	if (state.blend)
-		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-	else
-		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 
 	flag = 1;
 cleanup:
@@ -1327,6 +1327,7 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 	if (!pm || !ca)
 		goto cleanup;
 
+	UPDATE_BLEND_MODE(ren);
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	for (int i = 0; i < pm->h; ++i) {
@@ -1336,10 +1337,7 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 			struct canvas *c = canvasArrayFind(ca, pm->x + j, pm->y + i);
 			if (!c)
 				continue;
-			if (state.blend)
-				SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_BLEND);
-			else
-				SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
+			UPDATE_BLEND_MODE(c->ren);
 			SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 			SDL_SetRenderTarget(ren, c->tex);
 			SDL_RenderDrawPoint(ren, pm->x - c->x + j, pm->y - c->y + i);
@@ -1944,8 +1942,6 @@ int frameDo()
 			}
 		case D_DRAWRECT:
 			{
-				if (!state.blend)
-					SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 				int x, y, w, h;
 				if (state.drag.drawRect.currX
 				 >= state.drag.drawRect.initX) {
@@ -1979,6 +1975,7 @@ int frameDo()
 						state.drag.drawRect.initY + 1
 						) - y;
 				}
+				UPDATE_BLEND_MODE(ren);
 				SDL_Rect rectRect = {x, y, w, h};
 				SDL_SetRenderDrawColor(
 						ren,
@@ -1988,7 +1985,6 @@ int frameDo()
 						state.drag.drawRect.color.a
 						);
 				SDL_RenderFillRect(ren, &rectRect);
-				SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 				break;
 			}
 		default:
@@ -2148,9 +2144,6 @@ int frameDo()
 skipChannelRulers:
 
 	SDL_RenderPresent(ren);
-
-	if (!state.blend)
-		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 
 	flag = 1;
 cleanup:
