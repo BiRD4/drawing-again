@@ -343,16 +343,16 @@ void quit()
 	SDL_Quit();
 }
 
-char *dialogFileSave(char *title, char *initPath)
-{
-	char *patterns[] = {"*.png"};
-	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
-}
-
 char *dialogFileOpen(char *title, char *initPath, int multiSel)
 {
 	char *patterns[] = {"*.png"};
 	return tinyfd_openFileDialog(title, initPath, 1, patterns, NULL, multiSel);
+}
+
+char *dialogFileSave(char *title, char *initPath)
+{
+	char *patterns[] = {"*.png"};
+	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
 }
 
 int texFix()
@@ -470,20 +470,6 @@ cleanup:
 	return flag;
 }
 
-int canvasSave(struct canvas *c)
-{
-	int flag = 0;
-	if (!c)
-		goto cleanup;
-
-	if (IMG_SavePNG(c->surf, c->path))
-		goto cleanup;
-
-	flag = 1;
-cleanup:
-	return flag;
-}
-
 int canvasLoad(struct canvas *c)
 {
 	int flag = 0;
@@ -514,20 +500,14 @@ cleanup:
 	return flag;
 }
 
-int canvasSaveAs(struct canvas *c)
+int canvasSave(struct canvas *c)
 {
 	int flag = 0;
 	if (!c)
 		goto cleanup;
 
-	char *path = dialogFileSave("Save as", c->path);
-	if (!path)
+	if (IMG_SavePNG(c->surf, c->path))
 		goto cleanup;
-	int i;
-	for (i = 0; path[i] != '\0' && i < MAX_PATHLEN - 1; ++i)
-		c->path[i] = path[i];
-	c->path[i] = '\0';
-	canvasSave(c);
 
 	flag = 1;
 cleanup:
@@ -548,6 +528,26 @@ int canvasOpen(struct canvas *c)
 		c->path[i] = path[i];
 	c->path[i] = '\0';
 	canvasLoad(c);
+
+	flag = 1;
+cleanup:
+	return flag;
+}
+
+int canvasSaveAs(struct canvas *c)
+{
+	int flag = 0;
+	if (!c)
+		goto cleanup;
+
+	char *path = dialogFileSave("Save as", c->path);
+	if (!path)
+		goto cleanup;
+	int i;
+	for (i = 0; path[i] != '\0' && i < MAX_PATHLEN - 1; ++i)
+		c->path[i] = path[i];
+	c->path[i] = '\0';
+	canvasSave(c);
 
 	flag = 1;
 cleanup:
