@@ -2447,6 +2447,16 @@ E_SELECT_fd:
 							}
 							break;
 						case SDLK_s:
+							if (state.canvasArr->size != 0) {
+								MAP_CANVASES(state.canvasArr, i, c) {
+									if (!c->isSel) {
+										canvasArrayAppend(state.canvasSel, c);
+										c->isSel = 1;
+									}
+								}
+							}
+							break;
+						case SDLK_a:
 							if (state.canvasSel->size != 0) {
 								struct canvasArray *oldArray =
 									canvasArrayCopy(state.canvasSel);
@@ -2455,16 +2465,6 @@ E_SELECT_fd:
 									c->isSel = 0;
 								}
 								canvasArrayFree(oldArray);
-							}
-							break;
-						case SDLK_a:
-							if (state.canvasArr->size != 0) {
-								MAP_CANVASES(state.canvasArr, i, c) {
-									if (!c->isSel) {
-										canvasArrayAppend(state.canvasSel, c);
-										c->isSel = 1;
-									}
-								}
 							}
 							break;
 						default:
