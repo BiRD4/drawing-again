@@ -11,7 +11,9 @@ ifneq (,$(findstring gcc,$(CC)))
 endif
 
 ifeq ($(OS),Windows_NT)
+        ifndef $(NO_TINYFD)
         LIBS += -lcomdlg32 -lole32
+        endif
         CC_FLAGS += -Wl,-subsystem=console
         ifneq (,$(findstring MINGW,$(shell uname)))
                 LIBS += -lmingw32
@@ -19,6 +21,10 @@ ifeq ($(OS),Windows_NT)
 
 endif
 LIBS += -lSDL2main -lSDL2 -lSDL2_image
+
+ifndef $(NO_TINYFD)
+        CC_FLAGS += -D NO_TINYFD
+endif
 
 all: $(OBJS)
 	@if [[ ! -d bin ]]; then \

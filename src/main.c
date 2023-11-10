@@ -3,7 +3,30 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+
+#ifndef NO_TINYFD
 #include <tinyfiledialogs.h>
+#endif
+
+char *dialogFileOpen(char *title, char *initPath, int multiSel)
+{
+#ifndef NO_TINYFD
+	char *patterns[] = {"*.png"};
+	return tinyfd_openFileDialog(title, initPath, 1, patterns, NULL, multiSel);
+#else
+	return NULL;
+#endif
+}
+
+char *dialogFileSave(char *title, char *initPath)
+{
+#ifndef NO_TINYFD
+	char *patterns[] = {"*.png"};
+	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
+#else
+	return NULL;
+#endif
+}
 
 #define FPS 60
 #define MAX_ZOOM 64
@@ -341,18 +364,6 @@ void quit()
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyTexture(texRuler);
 	SDL_Quit();
-}
-
-char *dialogFileOpen(char *title, char *initPath, int multiSel)
-{
-	char *patterns[] = {"*.png"};
-	return tinyfd_openFileDialog(title, initPath, 1, patterns, NULL, multiSel);
-}
-
-char *dialogFileSave(char *title, char *initPath)
-{
-	char *patterns[] = {"*.png"};
-	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
 }
 
 int texFix()
