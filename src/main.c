@@ -1752,8 +1752,6 @@ SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, i
 			break;
 	};
 
-	SDL_RenderSetClipRect(r, &rect);
-
 	if (segs != 1) {
 		int nextX, nextY;
 		switch (side) {
@@ -1807,6 +1805,7 @@ SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, i
 	}
 	SDL_Point center = {0, 0};
 
+	SDL_RenderSetClipRect(r, &rect);
 	int leftPixels = pixels;
 	for (int i = 0; i < segs; ++i) {
 		int currPixels = (leftPixels < tw) ? leftPixels : tw;
@@ -1837,7 +1836,6 @@ SDL_Rect drawRuler(SDL_Renderer *r, int length, int x, int y, int scaleLength, i
 		dst.h = scaleHeight * src.h;
 		SDL_RenderCopyEx(r, texRuler, &src, &dst, angle, &center, flip);
 	}
-
 	SDL_RenderSetClipRect(r, NULL);
 
 	return rect;
