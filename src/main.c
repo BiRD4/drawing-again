@@ -2261,7 +2261,7 @@ int eventKeyDown(SDL_Event *e)
 			state.debug = !state.debug;
 			goto cleanupNoError;
 		case SDLK_t:
-			state.blend = !state.blend;
+			state.blend = !state.space;
 			break;
 		case SDLK_v:
 			setScope(S_EASEL);
