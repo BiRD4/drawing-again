@@ -2269,6 +2269,9 @@ int eventKeyDown(SDL_Event *e)
 		case SDLK_F12:
 			state.debug = !state.debug;
 			goto cleanupNoError;
+		case SDLK_t:
+			state.blend = !state.blend;
+			break;
 		case SDLK_v:
 			setScope(S_EASEL);
 			goto cleanupNoError;
@@ -2684,15 +2687,6 @@ C_FILL_fdsa:
 				enum ModePick mode;
 				SDL_Color tmp;
 				SDL_Color *swap;
-				case SDLK_t:
-					if (!state.space) {
-						state.blend = 1;
-						SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-					} else {
-						state.blend = 0;
-						SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
-					}
-					break;
 				case SDLK_r:
 					mode = P_F;
 					if (!state.space)
