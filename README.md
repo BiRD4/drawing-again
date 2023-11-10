@@ -116,3 +116,10 @@ If open/save doesn't work, make sure that you have what you need as described in
 - [ ] Select/move/copy/paste tool (probably contigent on undo/redo)
 - [ ] Brush editing
 - [ ] Mouse button support
+
+## Monies
+Can give monies if ya want :3\
+[My Patreon](https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link "My Patreon")\
+<a href="https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link"><img alt="My Patreon" src="https://github.com/BiRD4/drawing-again/assets/20910668/a7c66129-9f20-4a72-bf65-96da7d06ad0a"></a>\
+[My Liberapay](https://liberapay.com/BiRD4/donate "My Liberapay")\
+<a href="https://liberapay.com/BiRD4/donate"><img alt="My Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
