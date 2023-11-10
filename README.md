@@ -103,9 +103,7 @@ Additionally, multifile drag and drop is supported.
 | Alpha channel          |  A  |
 
 ## Building
-This program uses [SDL2][] and [tinyfiledialogs][tinyfd].
-[sdl2]: https://wiki.libsdl.org/SDL2/FrontPage "SDL2 Wiki"
-[tinyfd]: https://sourceforge.net/projects/tinyfiledialogs/ "tinyfiledialogs Website"
+This program uses [SDL2](https://wiki.libsdl.org/SDL2/FrontPage "SDL2 Wiki") and [tinyfiledialogs](https://sourceforge.net/projects/tinyfiledialogs/ "tinyfiledialogs Website").
 
 `make all`
 
