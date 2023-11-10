@@ -19,7 +19,6 @@ Each edge of a canvas's border is a ruler that counts the row or column in binar
 which makes identifying powers of two easy.
 
 ### Concepts
-There are two levels of modality: the scope and the mode.
 When a scope is selected, its associated modes become available for selection.
 When a scope's mode is selected, its associated controls become available for use.
 
