@@ -92,7 +92,6 @@ struct {
 		int maxY;
 	} easel;
 
-	// TODO add C_SELECT
 	enum Scope {S_EASEL, S_CANVAS, S_PICK} scope;
 	enum ModeEasel {E_EDIT, E_TRANSFORM, E_SELECT} modeEasel;
 	enum ModeCanvas {C_PIXEL, C_LINE, C_RECT, C_FILL} modeCanvas;
