@@ -1,6 +1,6 @@
 # {Name}
 {Name} is a modal image drawing program.\
-![(Drawing Program)-12\_28\_27](https://github.com/BiRD4/drawing-again/assets/20910668/c69a38c2-e4b9-4799-b945-84ac8d8c1dcc)
+![(Drawing Program)-12_28_27](https://github.com/BiRD4/drawing-again/assets/20910668/0dc2f139-1abc-4265-aa36-04e800c71b9c)
 
 ## Guide
 
