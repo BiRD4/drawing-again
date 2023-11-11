@@ -10,17 +10,17 @@ INCLUDE_PATHS = -I ./include
 LD_FLAGS = -m64
 CC_FLAGS = -w -Wall
 
-ifeq ($(OS),Windows_NT)
-        ifndef $(NO_TINYFD)
+ifeq ($(OS),Windows_NT) # Windows-specific
+        ifndef $(NO_TINYFD) # needed for tinyfd
         LIBS += -lcomdlg32 -lole32
         endif
-        ifneq (,$(findstring MINGW,$(shell uname)))
+        ifneq (,$(findstring MINGW,$(shell uname))) # MINGW-specific
                 CC_FLAGS += -Wl,-subsystem=console
                 LIBS += -lmingw32
         endif
 
 endif
-LIBS += -lSDL2main -lSDL2 -lSDL2_image
+LIBS += -lSDL2main -lSDL2 -lSDL2_image # must come after -lmingw32
 
 ifndef $(NO_TINYFD)
         CC_FLAGS += -D NO_TINYFD
