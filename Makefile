@@ -4,11 +4,11 @@ OUT = -o ./bin/drawing-again
 OBJS = ./src/*
 
 CC = gcc
-ifneq (,$(findstring gcc,$(CC)))
-        INCLUDE_PATHS = -I ./include
-        LD_FLAGS = -m64
-        CC_FLAGS = -w -Wall
-endif
+
+INCLUDE_PATHS = -I ./include
+
+LD_FLAGS = -m64
+CC_FLAGS = -w -Wall
 
 ifeq ($(OS),Windows_NT)
         ifndef $(NO_TINYFD)
