@@ -108,7 +108,7 @@ This program uses [SDL2](https://wiki.libsdl.org/SDL2/FrontPage "SDL2 Wiki") and
 To build without tinyfiledialogs: `make WITH_TINYFD=0`\
 Otherwise: `make`
 
-If open/save doesn't work, make sure that you have what you need as described in README-tinyfd.
+For tinyfiledialogs info, see [README-tinyfd](https://github.com/BiRD4/drawing-again/blob/main/README-tinyfd#L138 "README-tinyfd").
 
 ## Possible additions
 - [ ] Image formats other than PNG
