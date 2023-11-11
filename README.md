@@ -124,4 +124,4 @@ Can give monies if ya want :3\
 [Liberapay (PayPal)](https://liberapay.com/BiRD4/donate "Liberapay")\
 <a href="https://liberapay.com/BiRD4/donate"><img alt="Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>\
 [PayPal](PayPal.me/BiRD4444 "PayPal")\
-<a href="https://www.paypal.com/donate"><img alt="PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"></a>
+<a href="https://paypal.me/BiRD4444"><img alt="PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"></a>
