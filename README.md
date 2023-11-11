@@ -120,7 +120,7 @@ If open/save doesn't work, make sure that you have what you need as described in
 ## Monies
 Can give monies if ya want :3\
 [My Patreon](https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link "My Patreon")\
-<a href="https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link"><img alt="My Patreon" src="https://github.com/BiRD4/drawing-again/assets/20910668/a7c66129-9f20-4a72-bf65-96da7d06ad0a"></a>\
+<a href="https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link"><img alt="My Patreon" src="https://c10.patreonusercontent.com/4/patreon-media/p/campaign/11324090/5caed472704c4ac88a24a2a27d60c105/eyJ3IjoyMDB9/3.jpg?token-time=2145916800&token-hash=0T-lD0CODUi0piwk1j5DneZtxCbCPZOERKIn_yI8U7E%3D"></a>\
 [My Liberapay](https://liberapay.com/BiRD4/donate "My Liberapay")\
 <a href="https://liberapay.com/BiRD4/donate"><img alt="My Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>\
 [My PayPal](PayPal.me/BiRD4444 "My PayPal")
