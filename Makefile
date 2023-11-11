@@ -23,7 +23,7 @@ endif
 LIBS += -lSDL2main -lSDL2 -lSDL2_image # must come after -lmingw32
 
 ifndef $(NO_TINYFD)
-        CC_FLAGS += -D NO_TINYFD
+        CC_FLAGS += -D WITH_TINYFD
 endif
 
 all: $(OBJS)

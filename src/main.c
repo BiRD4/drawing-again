@@ -4,13 +4,13 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#ifndef NO_TINYFD
+#ifdef WITH_TINYFD
 #include <tinyfiledialogs.h>
 #endif
 
 char *dialogFileOpen(char *title, char *initPath, int multiSel)
 {
-#ifndef NO_TINYFD
+#ifdef WITH_TINYFD
 	char *patterns[] = {"*.png"};
 	return tinyfd_openFileDialog(title, initPath, 1, patterns, NULL, multiSel);
 #else
@@ -20,7 +20,7 @@ char *dialogFileOpen(char *title, char *initPath, int multiSel)
 
 char *dialogFileSave(char *title, char *initPath)
 {
-#ifndef NO_TINYFD
+#ifdef WITH_TINYFD
 	char *patterns[] = {"*.png"};
 	return tinyfd_saveFileDialog(title, initPath, 1, patterns, NULL);
 #else
