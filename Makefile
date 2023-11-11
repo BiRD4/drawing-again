@@ -14,8 +14,8 @@ ifeq ($(OS),Windows_NT)
         ifndef $(NO_TINYFD)
         LIBS += -lcomdlg32 -lole32
         endif
-        CC_FLAGS += -Wl,-subsystem=console
         ifneq (,$(findstring MINGW,$(shell uname)))
+                CC_FLAGS += -Wl,-subsystem=console
                 LIBS += -lmingw32
         endif
 
