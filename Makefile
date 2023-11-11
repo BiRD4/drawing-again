@@ -1,5 +1,5 @@
 .PHONY: all
-NAME = drawing-again
+OUT = -o ./bin/drawing-again
 
 OBJS = ./src/*
 
@@ -30,4 +30,4 @@ all: $(OBJS)
 	@if [[ ! -d bin ]]; then \
 		mkdir bin; \
 	fi
-	$(CC) -o ./bin/$(NAME) $(OBJS) $(INCLUDE_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
+	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
