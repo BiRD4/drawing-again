@@ -30,4 +30,4 @@ all: $(OBJS)
 	@if [[ ! -d bin ]]; then \
 		mkdir bin; \
 	fi
-	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
+	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LD_FLAGS) $(CC_FLAGS) $(LIBS)
