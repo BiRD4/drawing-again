@@ -105,7 +105,7 @@ Additionally, multifile drag and drop is supported.
 ## Building
 This program uses [SDL2](https://wiki.libsdl.org/SDL2/FrontPage "SDL2 Wiki") and [tinyfiledialogs](https://sourceforge.net/projects/tinyfiledialogs/ "tinyfiledialogs Website").
 
-To build without tinyfiledialogs: `make NO_TINYFD=1`\
+To build without tinyfiledialogs: `make WITH_TINYFD=0`\
 Otherwise: `make`
 
 If open/save doesn't work, make sure that you have what you need as described in README-tinyfd.
