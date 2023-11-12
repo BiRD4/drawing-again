@@ -1,5 +1,5 @@
 .PHONY: all
-OUT = -o ./bin/drawing-again
+NAME = drawing-again
 
 WITH_TINYFD = 1
 
@@ -9,7 +9,7 @@ ifeq ($(WITH_TINYFD),1)
 endif
 
 CC = gcc
-
+OUT = -o ./bin/$(NAME)
 INCLUDE_PATHS = -I ./include
 
 LD_FLAGS = -m64
