@@ -1571,7 +1571,6 @@ int setDrag(enum ActionDrag action)
 				state.drag.drawLine.initY = TO_COORD_EASEL_Y(my);
 				state.drag.drawLine.currX = state.drag.drawLine.initX;
 				state.drag.drawLine.currY = state.drag.drawLine.initY;
-				pixelArrayReset(state.drag.drawLine.pixels);
 				canvasClear(state.drag.drawLine.preview);
 				canvasMove(
 						state.drag.drawLine.preview,
@@ -1580,6 +1579,17 @@ int setDrag(enum ActionDrag action)
 						1, 1
 					  );
 				canvasFix(state.drag.drawLine.preview);
+				pixelArrayReset(state.drag.drawLine.pixels);
+				struct pixel pix = {
+					state.drag.drawLine.initX,
+					state.drag.drawLine.initY
+				};
+				pixelArrayAppend(state.drag.drawLine.pixels, pix);
+				pixelArrayDo(
+					state.drag.drawLine.pixels,
+					state.drag.drawLine.previewArr,
+					state.drag.drawLine.color, 1
+					);
 				break;
 			}
 		case D_DRAWRECT:
