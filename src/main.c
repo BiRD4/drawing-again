@@ -1885,8 +1885,8 @@ int frameDo()
 					rectDst.x,
 					rectDst.y + state.easel.s * c->h,
 					state.easel.s,
-					(state.easel.s < 8)
-					? 1 : state.easel.s / 8,
+					(state.easel.s < 4)
+					? 1 : state.easel.s / 4,
 					SIDE_BOTTOM, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerLeft = drawRuler(
@@ -1895,8 +1895,8 @@ int frameDo()
 					rectDst.x,
 					rectDst.y,
 					state.easel.s,
-					(state.easel.s < 8)
-					? 1 : state.easel.s / 8,
+					(state.easel.s < 4)
+					? 1 : state.easel.s / 4,
 					SIDE_LEFT, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerTop = drawRuler(
@@ -1905,8 +1905,8 @@ int frameDo()
 					rectDst.x,
 					rectDst.y,
 					state.easel.s,
-					(state.easel.s < 8)
-					? 1 : state.easel.s / 8,
+					(state.easel.s < 4)
+					? 1 : state.easel.s / 4,
 					SIDE_TOP, SDL_FLIP_NONE
 					);
 			SDL_Rect rectRulerRight = drawRuler(
@@ -1915,8 +1915,8 @@ int frameDo()
 					rectDst.x + state.easel.s * c->w,
 					rectDst.y,
 					state.easel.s,
-					(state.easel.s < 8)
-					? 1 : state.easel.s / 8,
+					(state.easel.s < 4)
+					? 1 : state.easel.s / 4,
 					SIDE_RIGHT, SDL_FLIP_NONE
 					);
 			SDL_SetRenderDrawColor(ren, 255, 255, 255, 95);
