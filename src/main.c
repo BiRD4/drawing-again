@@ -2015,6 +2015,7 @@ int frameDo()
 						state.drag.drawRect.color.a
 						);
 				SDL_RenderFillRect(ren, &rectRect);
+				SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 				break;
 			}
 		default:
