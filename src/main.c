@@ -2071,10 +2071,164 @@ int frameDo()
 		SDL_RenderDrawRect(ren, &rectBounds);
 	}
 
+	SDL_Rect rectScope = {0, 0, 32, 24};
+	SDL_Rect rectMode = {
+		rectScope.x + rectScope.w, rectScope.y,
+		rectScope.w, rectScope.h
+	};
+	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
+	switch (state.scope) {
+		case S_EASEL:
+			{
+				SDL_Rect rectDrawScope = {
+					rectScope.x,
+					rectScope.y,
+					rectScope.w / 2,
+					rectScope.h / 2
+				};
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				rectDrawScope.x += rectDrawScope.w;
+				rectDrawScope.y += rectDrawScope.h;
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				switch (state.modeEasel) {
+					case E_EDIT:
+						{
+							SDL_Rect rectDrawMode = {
+								rectMode.x + rectMode.w / 4,
+								rectMode.y + rectMode.h / 4,
+								rectMode.w / 2,
+								rectMode.h / 2
+							};
+							SDL_RenderFillRect(ren, &rectDrawMode);
+							break;
+						}
+					case E_TRANSFORM:
+						SDL_RenderDrawLine(
+								ren,
+								rectMode.x,
+								rectMode.y + rectMode.h / 2,
+								rectMode.x + rectMode.w,
+								rectMode.y + rectMode.h / 2
+								);
+						SDL_RenderDrawLine(
+								ren,
+								rectMode.x + rectMode.w / 2,
+								rectMode.y,
+								rectMode.x + rectMode.w / 2,
+								rectMode.y + rectMode.h
+								);
+						break;
+					case E_SELECT:
+						{
+							SDL_Rect rectDrawMode = {
+								rectMode.x + rectMode.w / 4,
+								rectMode.y + rectMode.h / 4,
+								rectMode.w / 2,
+								rectMode.h / 2
+							};
+							SDL_RenderDrawRect(ren, &rectDrawMode);
+							break;
+						}
+					default:
+						break;
+				}
+				break;
+			}
+		case S_CANVAS:
+			{
+				SDL_Rect rectDrawScope = {
+					rectScope.x + rectScope.w / 4,
+					rectScope.y + rectScope.h / 4,
+					rectScope.w / 2,
+					rectScope.h / 2
+				};
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				switch (state.modeCanvas) {
+					case C_PIXEL:
+						{
+							SDL_Rect rectDrawMode;
+							if (rectMode.w >= rectMode.h) {
+								rectDrawMode.y = rectMode.y + rectMode.h / 4;
+								rectDrawMode.w = rectMode.h / 2,
+								rectDrawMode.h = rectMode.h / 2,
+								rectDrawMode.x = rectMode.x
+									+ (rectMode.w - rectDrawMode.w) / 2;
+							} else {
+								rectDrawMode.x = rectMode.x + rectMode.w / 4;
+								rectDrawMode.w = rectMode.w / 2,
+								rectDrawMode.h = rectMode.w / 2,
+								rectDrawMode.y = rectMode.y
+									+ (rectMode.h - rectDrawMode.h) / 2;
+							}
+							SDL_RenderDrawRect(ren, &rectDrawMode);
+							break;
+						}
+					case C_LINE:
+						SDL_RenderDrawLine(
+							ren,
+							rectMode.x,
+							rectMode.y + rectMode.h / 2,
+							rectMode.x + rectMode.w,
+							rectMode.y + rectMode.h / 2
+							);
+						break;
+					case C_RECT:
+						{
+							SDL_Rect rectDrawMode;
+							if (rectMode.w >= rectMode.h) {
+								rectDrawMode.y = rectMode.y + rectMode.h / 4;
+								rectDrawMode.w = rectMode.h / 2,
+								rectDrawMode.h = rectMode.h / 2,
+								rectDrawMode.x = rectMode.x
+									+ (rectMode.w - rectDrawMode.w) / 2;
+							} else {
+								rectDrawMode.x = rectMode.x + rectMode.w / 4;
+								rectDrawMode.w = rectMode.w / 2,
+								rectDrawMode.h = rectMode.w / 2,
+								rectDrawMode.y = rectMode.y
+									+ (rectMode.h - rectDrawMode.h) / 2;
+							}
+							SDL_RenderFillRect(ren, &rectDrawMode);
+							break;
+						}
+					case C_FILL:
+						SDL_RenderFillRect(ren, &rectMode);
+						break;
+					default:
+						break;
+				}
+				break;
+			}
+		case S_PICK:
+			{
+				SDL_Rect rectDrawScope = {
+					rectScope.x + rectScope.w / 16,
+					rectScope.y,
+					rectScope.w / 8,
+					rectScope.h
+				};
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				rectDrawScope.x += 2 * rectDrawScope.w;
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				rectDrawScope.x += 2 * rectDrawScope.w;
+				SDL_RenderFillRect(ren, &rectDrawScope);
+				rectDrawScope.x += 2 * rectDrawScope.w;
+				SDL_RenderFillRect(ren, &rectDrawScope);
+			break;
+			}
+		default:
+			break;
+	}
+	SDL_RenderDrawRect(ren, &rectMode);
+	SDL_RenderDrawRect(ren, &rectScope);
+
 	SDL_Color colors[4] = {
 		state.colors.a, state.colors.s, state.colors.d, state.colors.f
 	};
-	SDL_Rect rectColor = {0, 0, 32, 16};
+	SDL_Rect rectColor = {
+		rectScope.x + 4 * rectScope.w, rectScope.y,
+		rectScope.w, rectScope.h
+	};
 	for (int i = 0; i < 4; ++i) {
 		SDL_SetRenderDrawColor(
 				ren,
