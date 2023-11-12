@@ -1702,6 +1702,8 @@ int setSpace(int space)
 					SDL_SetRelativeMouseMode(SDL_TRUE);
 					break;
 				}
+			case D_EYEDROP:
+				break;
 			default:
 				break;
 		}
@@ -1717,6 +1719,13 @@ int setSpace(int space)
 						state.drag.panZoom.initX,
 						state.drag.panZoom.initY
 						);
+				break;
+			case D_EYEDROP:
+				state.drag.eyedrop.pickF = 0;
+				state.drag.eyedrop.pickD = 0;
+				state.drag.eyedrop.pickS = 0;
+				state.drag.eyedrop.pickA = 0;
+				setDrag(D_NONE);
 				break;
 			default:
 				break;
