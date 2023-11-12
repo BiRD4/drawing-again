@@ -2238,7 +2238,7 @@ int frameDo()
 		if (state.scope == S_PICK && 3 - i == state.modePick)
 			rectColor.y += rectColor.h - 1;
 		SDL_RenderFillRect(ren, &rectColor);
-		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawRect(ren, &rectColor);
 		if (state.scope == S_PICK && 3 - i == state.modePick)
 			rectColor.y -= rectColor.h - 1;
@@ -2250,9 +2250,9 @@ int frameDo()
 			rectColor.x + rectColor.w / 4, rectColor.y + rectColor.h / 4,
 			rectColor.w / 2, rectColor.h / 2
 		};
-		SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
-		SDL_RenderFillRect(ren, &rectBlend);
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderFillRect(ren, &rectBlend);
+		SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawRect(ren, &rectBlend);
 	}
 
