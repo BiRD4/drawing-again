@@ -35,3 +35,6 @@ all: $(OBJS)
 		mkdir bin; \
 	fi
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LD_FLAGS) $(CC_FLAGS) $(LIBS)
+
+run: all
+	./bin/$(NAME)
