@@ -2161,7 +2161,7 @@ int frameDo()
 		SDL_Rect rectRuler = drawRuler(
 				ren, 256,
 				rectColor.w * i, rectColor.h * 2 + channels[i],
-				1, 4, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
+				1, rectColor.w / 8, SIDE_RIGHT, SDL_FLIP_HORIZONTAL
 				);
 		SDL_SetRenderDrawColor(
 				ren,
