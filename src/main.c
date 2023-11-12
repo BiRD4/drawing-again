@@ -2308,8 +2308,10 @@ int frameDo()
 				);
 		SDL_RenderFillRect(ren, &rectRuler);
 	}
-	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 255, 128, rectColor.h * 2 + 255);
+	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
+	SDL_RenderDrawLine(ren, 0, rectColor.h * 2 +   0, 4 * rectColor.w, rectColor.h * 2 +   0);
+	SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 255, 4 * rectColor.w, rectColor.h * 2 + 255);
+	SDL_RenderDrawLine(ren, 0, rectColor.h * 2 + 511, 4 * rectColor.w, rectColor.h * 2 + 511);
 skipChannelRulers:
 
 	SDL_RenderPresent(ren);
