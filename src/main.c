@@ -970,27 +970,11 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 		int j = round(i * dj / (double) di);
 		struct pixel pix;
 		if (!swap) {
-			if (!flipX) {
-				pix.x = i1 + i;
-			} else {
-				pix.x = i2 - i;
-			}
-			if (!flipY) {
-				pix.y = j1 + j;
-			} else {
-				pix.y = j2 - j;
-			}
+			pix.x = !flipX ? i1 + i : i2 - i;
+			pix.y = !flipY ? j1 + j : j2 - j;
 		} else {
-			if (!flipX) {
-				pix.x = j1 + j;
-			} else {
-				pix.x = j2 - j;
-			}
-			if (!flipY) {
-				pix.y = i1 + i;
-			} else {
-				pix.y = i2 - i;
-			}
+			pix.x = !flipX ? j1 + j : j2 - j;
+			pix.y = !flipY ? i1 + i : i2 - i;
 		}
 		pixelArrayAppend(pa, pix);
 	}
