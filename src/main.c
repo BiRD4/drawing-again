@@ -1159,17 +1159,13 @@ int pixelArrayHas(struct pixelArray *pa, int x, int y)
 	return 0;
 }
 
-int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, int noBlend)
+int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 {
 	int flag = 0;
 	if (!pa || !ca)
 		goto cleanup;
 
-	if (noBlend) {
-		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-	} else  {
-		UPDATE_BLEND_MODE(ren);
-	}
+	UPDATE_BLEND_MODE(ren);
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	for (int i = 0; i < pa->size; ++i) {
@@ -1177,11 +1173,7 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col, i
 		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
-		if (noBlend) {
-			SDL_SetRenderDrawBlendMode(c->ren, SDL_BLENDMODE_NONE);
-		} else {
-			UPDATE_BLEND_MODE(c->ren);
-		}
+		UPDATE_BLEND_MODE(c->ren);
 		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
 		SDL_SetRenderTarget(ren, c->tex);
 		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
@@ -1422,7 +1414,7 @@ int setDrag(enum ActionDrag action)
 					state.drag.drawLine.pixels,
 					(state.canvasSel->size == 0)
 					? state.canvasArr : state.canvasSel,
-					state.drag.drawLine.color, 0
+					state.drag.drawLine.color
 				    );
 			break;
 		case D_DRAWRECT:
@@ -1558,7 +1550,7 @@ int setDrag(enum ActionDrag action)
 						state.drag.drawPixel.pixels,
 						(state.canvasSel->size == 0)
 						? state.canvasArr : state.canvasSel,
-						state.drag.drawPixel.color, 0
+						state.drag.drawPixel.color
 					    );
 				pixelArrayReset(state.drag.drawPixel.pixels);
 				break;
@@ -1588,7 +1580,7 @@ int setDrag(enum ActionDrag action)
 				pixelArrayDo(
 					state.drag.drawLine.pixels,
 					state.drag.drawLine.previewArr,
-					state.drag.drawLine.color, 1
+					state.drag.drawLine.color
 					);
 				break;
 			}
@@ -3075,7 +3067,7 @@ int cursorMotion(int cursorX, int cursorY)
 				state.drag.drawPixel.pixels,
 				(state.canvasSel->size == 0)
 				? state.canvasArr : state.canvasSel,
-				state.drag.drawPixel.color, 0
+				state.drag.drawPixel.color
 				);
 			state.drag.drawPixel.initX = cursorX;
 			state.drag.drawPixel.initY = cursorY;
@@ -3132,7 +3124,7 @@ int cursorMotion(int cursorX, int cursorY)
 			pixelArrayDo(
 				state.drag.drawLine.pixels,
 				state.drag.drawLine.previewArr,
-				state.drag.drawLine.color, 1
+				state.drag.drawLine.color
 				);
 			break;
 		case D_DRAWRECT:
