@@ -3032,8 +3032,8 @@ int cursorMotion(int cursorX, int cursorY)
 					if (!c->isSel) {
 						canvasMove(
 							c, c->x, c->y,
-							cursorX - c->x,
-							cursorY - c->y
+							cursorX - c->x + 1,
+							cursorY - c->y + 1
 							);
 					}
 				}
