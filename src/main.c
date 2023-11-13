@@ -2290,10 +2290,10 @@ int frameDo()
 	}
 	int channels[4] = {color.a, color.b, color.g, color.r};
 	SDL_Color rulerColors[4] = {
-		{255, 255, 255, 127},
-		{  0,   0, 255, 127},
-		{  0, 255,   0, 127},
-		{255,   0,   0, 127}
+		{255, 255, 255, 63},
+		{  0,   0, 255, 63},
+		{  0, 255,   0, 63},
+		{255,   0,   0, 63}
 	};
 	for (int i = 0; i < 4; ++i) {
 		SDL_Rect rectRuler = drawRuler(
