@@ -20,6 +20,8 @@ ifeq ($(OS),Windows_NT) # Windows-specific
         ifeq ($(WITH_TINYFD),1) # needed for tinyfd
                 LIBS += -lcomdlg32 -lole32
         endif
+else
+        LIBS += -lm # took an hour for me to finally figure this out lol
 endif
 LIBS += -lSDL2main -lSDL2 -lSDL2_image # must come after -lmingw32
 
