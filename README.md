@@ -54,13 +54,14 @@ When a scope's mode is selected, its associated controls become available for us
 
 #### Global
 
-| Global control    |      Key       |
-| ----------------- | :------------: |
-| Open              |     Ctrl-E     |
-| Save (as)         | Ctrl-(Shift-)S |
-| Pan (+ zoom)      |   (Space-)G    |
-| Alpha blend (off) |   (Space-)T    |
-| Toggle debug      |      F12       |
+| Global control            |      Key       |
+| ------------------------- | :------------: |
+| Open                      |     Ctrl-E     |
+| Save (as)                 | Ctrl-(Shift-)S |
+| Pan (+ zoom)              |   (Space-)G    |
+| Alpha blend (off)         |   (Space-)T    |
+| Toggle debug              |       F2       |
+| Toggle hide mouse on zoom |       F3       |
 
 Additionally, multifile drag and drop is supported.
 
