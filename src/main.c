@@ -2431,7 +2431,7 @@ int eventKeyDown(SDL_Event *e)
 	}
 
 	switch (e->key.keysym.sym) {
-		case SDLK_F12:
+		case SDLK_F2:
 			state.debug = !state.debug;
 			goto cleanupNoError;
 		case SDLK_t:
