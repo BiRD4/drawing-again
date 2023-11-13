@@ -117,6 +117,7 @@ For tinyfiledialogs info, see [README-tinyfd](https://github.com/BiRD4/drawing-a
 - [ ] Select/move/copy/paste tool (probably contigent on undo/redo)
 - [ ] Brush editing
 - [ ] Mouse button support
+- [ ] Channel locking
 
 ## Monies
 Can give monies if ya want :3\
