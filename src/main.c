@@ -2076,6 +2076,9 @@ int frameDo()
 		rectScope.x + rectScope.w, rectScope.y,
 		rectScope.w, rectScope.h
 	};
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderFillRect(ren, &rectScope);
+	SDL_RenderFillRect(ren, &rectMode);
 	SDL_SetRenderDrawColor(ren, 127, 127, 127, SDL_ALPHA_OPAQUE);
 	switch (state.scope) {
 		case S_EASEL:
