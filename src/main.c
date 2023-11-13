@@ -106,7 +106,10 @@ struct {
 
 	int quit;
 	int warp;
+
 	int debug;
+	int relMouse;
+
 	int space;
 	int blend;
 
@@ -209,7 +212,7 @@ struct {
 	struct canvasArray *canvasSel;
 
 } state = {
-	0, 0, 0, 0, 1,
+	0, 0, 0, 0, 0, 1,
 	{0, 0, INIT_SCALE, 0, 0, 0, 0},
 	S_EASEL, E_EDIT, C_PIXEL, P_F,
 	{
@@ -1459,7 +1462,8 @@ int setDrag(enum ActionDrag action)
 
 				SDL_CaptureMouse(SDL_TRUE);
 				if (state.space) {
-					SDL_SetRelativeMouseMode(SDL_TRUE);
+					if (state.relMouse)
+						SDL_SetRelativeMouseMode(SDL_TRUE);
 					state.drag.panZoom.initX = mx;
 					state.drag.panZoom.initY = my;
 					state.drag.panZoom.accumStep = 0;
@@ -1683,7 +1687,8 @@ int setSpace(int space)
 					SDL_GetMouseState(&mx, &my);
 					state.drag.panZoom.initX = mx;
 					state.drag.panZoom.initY = my;
-					SDL_SetRelativeMouseMode(SDL_TRUE);
+					if (state.relMouse)
+						SDL_SetRelativeMouseMode(SDL_TRUE);
 					break;
 				}
 			case D_EYEDROP:
@@ -2433,6 +2438,9 @@ int eventKeyDown(SDL_Event *e)
 	switch (e->key.keysym.sym) {
 		case SDLK_F2:
 			state.debug = !state.debug;
+			goto cleanupNoError;
+		case SDLK_F3:
+			state.relMouse = !state.relMouse;
 			goto cleanupNoError;
 		case SDLK_t:
 			state.blend = !state.space;
