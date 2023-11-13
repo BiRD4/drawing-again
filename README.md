@@ -1,6 +1,6 @@
 # {Name}
 {Name} is a modal image drawing program.\
-![(Drawing Program)-18_39_35](https://github.com/BiRD4/drawing-again/assets/20910668/16861026-b64e-46bb-8264-e55282e108a6)
+![(Drawing Program)-18\_39\_35](https://github.com/BiRD4/drawing-again/assets/20910668/16861026-b64e-46bb-8264-e55282e108a6)
 
 ## Guide
 
@@ -9,12 +9,13 @@
 
 ### Window elements
 
-| Window element           | Description                    |
-| ------------------------ | ------------------------------ |
-| Color swatches           | The currently selected colors  |
-| Color channel rulers     | Displayed when picking a color |
-| Alpha blending indicator | Whether to blend when drawing  |
-| Canvases                 | The images being edited        |
+| Window element             | Description                            |
+| -------------------------- | -------------------------------------- |
+| Scope and mode indicators  | The currently selected scope and mode  |
+| Color swatches             | The currently selected colors          |
+| Alpha blending indicator   | Whether to blend when drawing          |
+| Color channel rulers       | Displayed when picking a color         |
+| Canvases                   | The images being edited                |
 
 Each edge of a canvas's border is a ruler that counts the row or column in binary,
 which makes identifying powers of two easy.
@@ -23,24 +24,24 @@ which makes identifying powers of two easy.
 When a scope is selected, its associated modes become available for selection.\
 When a scope's mode is selected, its associated controls become available for use.
 
-| Scope  | Key | Description                                                                      |
-| ------ | :-: | -------------------------------------------------------------------------------- |
-| Easel  |  V  | Comprises controls at the level of the imaginary "easel" that holds the canvases |
-| Canvas |  C  | Comprises controls at the level of the canvases                                  |
-| Pick   |  X  | Comprises controls for picking the color swatches                                |
+| Scope  | Key | Indicator | Description                                                                      |
+| ------ | :-: | :-------: | -------------------------------------------------------------------------------- |
+| Easel  |  V  |     ▚     | Comprises controls at the level of the imaginary "easel" that holds the canvases |
+| Canvas |  C  |     ▬     | Comprises controls at the level of the canvases                                  |
+| Pick   |  X  |     ▥     | Comprises controls for picking the color swatches                                |
 
-| Easel mode | Key | Description            |
-| ---------- | :-: | ---------------------- |
-| Edit       |  R  | Add or delete canvases |
-| Transform  |  E  | Transform canvases     |
-| Select     |  W  | Select canvases        |
+| Easel mode | Key | Indicator | Description            |
+| ---------- | :-: | :-------: | ---------------------- |
+| Edit       |  R  |     ▬     | Add or delete canvases |
+| Transform  |  E  |     ╋     | Transform canvases     |
+| Select     |  W  |     ▭     | Select canvases        |
 
-| Canvas mode | Key | Description            |
-| ----------- | :-: | ---------------------- |
-| Pixel       |  R  | Draw pixels            |
-| Line        |  E  | Line tool              |
-| Rect        |  W  | Rectangle tool         |
-| Fill        |  Q  | Flood fill             |
+| Canvas mode | Key | Indicator | Description            |
+| ----------- | :-: | :-------: | ---------------------- |
+| Pixel       |  R  |     □     | Draw pixels            |
+| Line        |  E  |     ─     | Line tool              |
+| Rect        |  W  |     ■     | Rectangle tool         |
+| Fill        |  Q  |     ▬     | Flood fill             |
 
 | Pick mode |    Key    | Description    |
 | --------- | :-------: | ------------   |
