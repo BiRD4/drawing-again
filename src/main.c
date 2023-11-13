@@ -967,7 +967,7 @@ int pixelArrayLine(struct pixelArray *pa, int inX1, int inY1, int inX2, int inY2
 
 	int start = !skipFirst ? 0 : 1;
 	for (int i = start; i <= di; ++i) {
-		int j = round(i * dj / (double) di);
+		int j = round((double) i * dj / di);
 		struct pixel pix;
 		if (!swap) {
 			pix.x = !flipX ? i1 + i : i2 - i;
