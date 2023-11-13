@@ -124,5 +124,5 @@ Can give monies if ya want :3\
 <a href="https://patreon.com/user?u=106662965&utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=creatorshare_creator&utm_content=join_link"><img alt="Patreon" src="https://c10.patreonusercontent.com/4/patreon-media/p/campaign/11324090/5caed472704c4ac88a24a2a27d60c105/eyJ3IjoyMDB9/3.jpg?token-time=2145916800&token-hash=0T-lD0CODUi0piwk1j5DneZtxCbCPZOERKIn_yI8U7E%3D"></a>\
 [Liberapay (PayPal)](https://liberapay.com/BiRD4/donate "Liberapay")\
 <a href="https://liberapay.com/BiRD4/donate"><img alt="Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>\
-[PayPal](PayPal.me/BiRD4444 "PayPal")\
+[PayPal](https://paypal.me/BiRD4444 "PayPal")\
 <a href="https://paypal.me/BiRD4444"><img alt="PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"></a>
