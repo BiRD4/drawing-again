@@ -10,7 +10,7 @@ ifeq ($(WITH_TINYFD),1)
 endif
 
 CC = gcc
-OUT = -o ./bin/$(NAME)
+OUT = -o ./bin/$(NAME)_x86-64
 INCLUDE_PATHS += -iquote ./include
 
 LD_FLAGS += -m64
