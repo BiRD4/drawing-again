@@ -47,8 +47,11 @@ all: $(OBJS)
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
 
 release: all
-	cp ./lib/* ./bin
-	zip -r release ./bin
+	@if [[ ! -d release/$(OS) ]]; then \
+		mkdir -p release/$(OS); \
+	fi
+	cp $(BIN) ./lib/* ./release/$(OS)
+	zip -mr release/$(OS) ./release/$(OS)
 
 run: all
 	$(BIN)
