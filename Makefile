@@ -1,4 +1,4 @@
-.PHONY: all run release clean
+.PHONY: all release run clean
 NAME = drawing-again
 
 DEBUG = 0
@@ -45,12 +45,12 @@ all: $(OBJS)
 	fi
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
 
-run: all
-	./bin/$(NAME)
-
 release: all
 	cp ./lib/* ./bin
 	zip -r release ./bin
+
+run: all
+	$(BIN)
 
 clean:
 	rm -rf ./bin
