@@ -23,9 +23,6 @@ ifeq ($(WITH_TINYFD),1)
 endif
 
 ifeq ($(OS),Windows_NT) # Windows-specific
-        ifneq (,$(findstring MINGW,$(shell uname))) # MINGW-specific
-                LIBS += -lmingw32
-                CC_FLAGS += -Wl,-subsystem=console
         ifeq ($(DEBUG),1)
                 LD_FLAGS += -mconsole
         else
@@ -33,6 +30,9 @@ ifeq ($(OS),Windows_NT) # Windows-specific
         endif
         ifeq ($(WITH_TINYFD),1) # needed for tinyfd
                 LIBS += -lcomdlg32 -lole32
+        endif
+        ifneq (,$(findstring MINGW,$(shell uname))) # MINGW-specific
+                LIBS += -lmingw32
         endif
 else
         LIBS += -lm # took an hour for me to finally figure this out lol
