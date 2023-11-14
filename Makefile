@@ -1,4 +1,4 @@
-.PHONY: all
+.PHONY: all run release clean
 NAME = drawing-again
 
 DEBUG = 0
