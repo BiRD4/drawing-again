@@ -47,3 +47,10 @@ all: $(OBJS)
 
 run: all
 	./bin/$(NAME)
+
+release: all
+	cp ./lib/* ./bin
+	zip -r release ./bin
+
+clean:
+	rm -rf ./bin
