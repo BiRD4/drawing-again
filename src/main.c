@@ -5,7 +5,7 @@
 #include <SDL2/SDL_image.h>
 
 #ifdef WITH_TINYFD
-#include <tinyfiledialogs.h>
+#include "tinyfiledialogs.h"
 #endif
 
 char *dialogFileOpen(char *title, char *initPath, int multiSel)

@@ -11,7 +11,7 @@ endif
 
 CC = gcc
 OUT = -o ./bin/$(NAME)
-INCLUDE_PATHS += -I ./include
+INCLUDE_PATHS += -iquote ./include
 
 LD_FLAGS += -m64
 CC_FLAGS += -w -Wall
