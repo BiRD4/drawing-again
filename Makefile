@@ -1,5 +1,6 @@
 .PHONY: all release run clean
 NAME = drawing-again
+BIN = ./bin/$(NAME)_x86-64
 
 DEBUG = 0
 WITH_TINYFD = 1
@@ -10,7 +11,7 @@ ifeq ($(WITH_TINYFD),1)
 endif
 
 CC = gcc
-OUT = -o ./bin/$(NAME)_x86-64
+OUT = -o $(BIN)
 INCLUDE_PATHS += -iquote ./include
 
 LD_FLAGS += -m64
@@ -40,8 +41,8 @@ endif
 LIBS += -lSDL2main -lSDL2 -lSDL2_image # must come after -lmingw32
 
 all: $(OBJS)
-	@if [[ ! -d bin ]]; then \
-		mkdir bin; \
+	@if [[ ! -d $(dir $(BIN)) ]]; then \
+		mkdir $(dir $(BIN)); \
 	fi
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
 
@@ -53,4 +54,4 @@ run: all
 	$(BIN)
 
 clean:
-	rm -rf ./bin
+	rm -rf $(dir $(BIN))
