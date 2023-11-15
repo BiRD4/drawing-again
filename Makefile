@@ -70,7 +70,11 @@ release: all
 	@if [[ ! -d release ]]; then \
 		mkdir release; \
 	fi
-	zip release/$(NAME)_$(OS)_x86-64 $(RELEASE_FILES)
+	@if [[ ! -d $(NAME)_$(OS)_x86_64 ]]; then \
+		mkdir $(NAME)_$(OS)_x86-64; \
+	fi
+	cp $(RELEASE_FILES) ./$(NAME)_$(OS)_x86-64
+	zip -mr release/$(NAME)_$(OS)_x86-64 ./$(NAME)_$(OS)_x86-64
 
 clean:
 	rm -rf $(dir $(BIN))
