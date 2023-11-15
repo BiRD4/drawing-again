@@ -71,6 +71,7 @@ Additionally, multifile drag and drop is supported.
 | ----------------- | :-: |
 | Add canvas        |  F  |
 | Delete canvas     |  D  |
+| Canvas to top     |  S  |
 
 | Transform mode control | Key |
 | ---------------------- | :-: |
