@@ -1,5 +1,4 @@
-.PHONY: all release run clean
-NAME = drawing-again
+.PHONY: all run release clean
 
 ifeq ($(OS),Windows_NT) # Windows-specific
         OS = windows
@@ -12,6 +11,7 @@ else
         endif
 endif
 
+NAME = drawing-again
 BIN = ./bin/$(NAME)
 
 DEBUG = 0
@@ -35,7 +35,7 @@ ifeq ($(WITH_TINYFD),1)
         CC_FLAGS += -D WITH_TINYFD
 endif
 
-ifeq ($(OS),windows) # Windows-specific
+ifeq ($(OS),windows)
         ifeq ($(DEBUG),1)
                 LD_FLAGS += -mconsole
         else
@@ -58,6 +58,9 @@ all: $(OBJS)
 	fi
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
 
+run: all
+	$(BIN)
+
 release: all
 	@if [[ ! -d $(NAME)_$(OS)_x86_64 ]]; then \
 		mkdir $(NAME)_$(OS)_x86-64; \
@@ -70,9 +73,6 @@ ifeq ($(OS),windows)
 	cp ./lib/*.dll ./$(NAME)_$(OS)_x86-64
 endif
 	zip -mr release/$(NAME)_$(OS)_x86-64 ./$(NAME)_$(OS)_x86-64
-
-run: all
-	$(BIN)
 
 clean:
 	rm -rf $(dir $(BIN))
