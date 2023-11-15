@@ -61,18 +61,16 @@ all: $(OBJS)
 run: all
 	$(BIN)
 
+RELEASE_FILES = $(BIN)*
+ifeq ($(OS),windows)
+        RELEASE_FILES += ./lib/*.dll
+endif
+
 release: all
-	@if [[ ! -d $(NAME)_$(OS)_x86_64 ]]; then \
-		mkdir $(NAME)_$(OS)_x86-64; \
-	fi
 	@if [[ ! -d release ]]; then \
 		mkdir release; \
 	fi
-	cp $(BIN) ./$(NAME)_$(OS)_x86-64
-ifeq ($(OS),windows)
-	cp ./lib/*.dll ./$(NAME)_$(OS)_x86-64
-endif
-	zip -mr release/$(NAME)_$(OS)_x86-64 ./$(NAME)_$(OS)_x86-64
+	zip release/$(NAME)_$(OS)_x86-64 $(RELEASE_FILES)
 
 clean:
 	rm -rf $(dir $(BIN))
