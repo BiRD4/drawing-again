@@ -1,6 +1,18 @@
 .PHONY: all release run clean
 NAME = drawing-again
-BIN = ./bin/$(NAME)_x86-64
+
+ifeq ($(OS),Windows_NT) # Windows-specific
+        OS = windows
+else
+        ifneq (,$(findstring Linux,$(shell uname -o)))
+                OS = linux
+        endif
+        ifneq (,$(findstring Darwin,$(shell uname -o)))
+                OS = osx
+        endif
+endif
+
+BIN = ./bin/$(NAME)
 
 DEBUG = 0
 WITH_TINYFD = 1
@@ -23,7 +35,7 @@ ifeq ($(WITH_TINYFD),1)
         CC_FLAGS += -D WITH_TINYFD
 endif
 
-ifeq ($(OS),Windows_NT) # Windows-specific
+ifeq ($(OS),windows) # Windows-specific
         ifeq ($(DEBUG),1)
                 LD_FLAGS += -mconsole
         else
