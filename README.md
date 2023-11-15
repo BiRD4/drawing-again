@@ -112,6 +112,8 @@ Otherwise: `make`
 
 For tinyfiledialogs info, see [README-tinyfd](https://github.com/BiRD4/drawing-again/blob/main/README-tinyfd#L138 "README-tinyfd").
 
+Releases are zipped with `zip`.
+
 ## Possible additions
 - [ ] Image formats other than PNG
 - [ ] Undo/redo
