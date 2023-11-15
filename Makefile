@@ -59,11 +59,14 @@ all: $(OBJS)
 	$(CC) $(OUT) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LIBS) $(LD_FLAGS) $(CC_FLAGS)
 
 release: all
-	@if [[ ! -d release/$(OS) ]]; then \
-		mkdir -p release/$(OS); \
+	@if [[ ! -d release/$(OS)_x86_64 ]]; then \
+		mkdir -p release/$(OS)_x86-64; \
 	fi
-	cp $(BIN) ./lib/* ./release/$(OS)
-	zip -mr release/$(OS) ./release/$(OS)
+	cp $(BIN) ./release/$(OS)_x86-64
+ifeq ($(OS),windows)
+	cp ./lib/*.dll ./release/$(OS)_x86-64
+endif
+	zip -mr release/$(OS)_x86-64 ./release/$(OS)_x86-64
 
 run: all
 	$(BIN)
