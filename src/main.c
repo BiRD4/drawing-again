@@ -687,6 +687,8 @@ int canvasFix(struct canvas *c)
 	SDL_UpdateTexture(c->tex, NULL, c->surf->pixels, c->surf->pitch);
 	UNLOCK_SURFACE_IF_MUST(c->surf);
 
+	easelBoundsFix();
+
 	flag = 1;
 cleanup:
 	return flag;
