@@ -207,6 +207,12 @@ struct {
 		SDL_Color s;
 		SDL_Color a;
 	} colors;
+	struct {
+		int drawRed;
+		int drawGreen;
+		int drawBlue;
+		int drawAlpha;
+	} draw;
 
 	struct canvasArray *canvasArr;
 	struct canvasArray *canvasSel;
@@ -231,6 +237,7 @@ struct {
 		{  0,   0, 255, 255},
 		{255, 255, 255, 255}
 	},
+	{1, 1, 1, 1},
 	NULL, NULL
 };
 
@@ -1155,18 +1162,35 @@ int pixelArrayDo(struct pixelArray *pa, struct canvasArray *ca, SDL_Color col)
 		goto cleanup;
 
 	UPDATE_BLEND_MODE(ren);
-	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	for (int i = 0; i < pa->size; ++i) {
 		struct pixel pix = pa->array[i];
 		struct canvas *c = canvasArrayFind(ca, pix.x, pix.y);
 		if (!c)
 			continue;
+		int cx = pix.x - c->x;
+		int cy = pix.y - c->y;
+		if (!state.draw.drawRed
+		 || !state.draw.drawGreen
+		 || !state.draw.drawBlue
+		 || !state.draw.drawAlpha) {
+			SDL_Color old;
+			canvasGetColor(c, cx, cy, &old);
+			if (!state.draw.drawRed)
+				col.r = old.r;
+			if (!state.draw.drawGreen)
+				col.g = old.g;
+			if (!state.draw.drawBlue)
+				col.b = old.b;
+			if (!state.draw.drawAlpha)
+				col.a = old.a;
+		}
 		UPDATE_BLEND_MODE(c->ren);
 		SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
+		SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 		SDL_SetRenderTarget(ren, c->tex);
-		SDL_RenderDrawPoint(ren, pix.x - c->x, pix.y - c->y);
-		SDL_RenderDrawPoint(c->ren, pix.x - c->x, pix.y - c->y);
+		SDL_RenderDrawPoint(ren, cx, cy);
+		SDL_RenderDrawPoint(c->ren, cx, cy);
 	}
 	SDL_SetRenderTarget(ren, NULL);
 
@@ -1320,7 +1344,6 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 		goto cleanup;
 
 	UPDATE_BLEND_MODE(ren);
-	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 
 	for (int i = 0; i < pm->h; ++i) {
 		for (int j = 0; j < pm->w; ++j) {
@@ -1329,11 +1352,29 @@ int pixelMaskDo(struct pixelMask *pm, struct canvasArray *ca, SDL_Color col)
 			struct canvas *c = canvasArrayFind(ca, pm->x + j, pm->y + i);
 			if (!c)
 				continue;
+			int cx = pm->x - c->x + j;
+			int cy = pm->y - c->y + i;
+			if (!state.draw.drawRed
+					|| !state.draw.drawGreen
+					|| !state.draw.drawBlue
+					|| !state.draw.drawAlpha) {
+				SDL_Color old;
+				canvasGetColor(c, cx, cy, &old);
+				if (!state.draw.drawRed)
+					col.r = old.r;
+				if (!state.draw.drawGreen)
+					col.g = old.g;
+				if (!state.draw.drawBlue)
+					col.b = old.b;
+				if (!state.draw.drawAlpha)
+					col.a = old.a;
+			}
 			UPDATE_BLEND_MODE(c->ren);
 			SDL_SetRenderDrawColor(c->ren, col.r, col.g, col.b, col.a);
+			SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 			SDL_SetRenderTarget(ren, c->tex);
-			SDL_RenderDrawPoint(ren, pm->x - c->x + j, pm->y - c->y + i);
-			SDL_RenderDrawPoint(c->ren, pm->x - c->x + j, pm->y - c->y + i);
+			SDL_RenderDrawPoint(ren, cx, cy);
+			SDL_RenderDrawPoint(c->ren, cx, cy);
 		}
 	}
 	SDL_SetRenderTarget(ren, NULL);
@@ -2296,6 +2337,7 @@ int frameDo()
 	} else {
 		goto skipChannelRulers;
 	}
+
 	int channels[4] = {color.a, color.b, color.g, color.r};
 	SDL_Color rulerColors[4] = {
 		{255, 255, 255, 63},
@@ -2303,6 +2345,15 @@ int frameDo()
 		{  0, 255,   0, 63},
 		{255,   0,   0, 63}
 	};
+	if (!state.draw.drawRed)
+		rulerColors[3].a = SDL_ALPHA_TRANSPARENT;
+	if (!state.draw.drawGreen)
+		rulerColors[2].a = SDL_ALPHA_TRANSPARENT;
+	if (!state.draw.drawBlue)
+		rulerColors[1].a = SDL_ALPHA_TRANSPARENT;
+	if (!state.draw.drawAlpha)
+		rulerColors[0].a = SDL_ALPHA_TRANSPARENT;
+
 	for (int i = 0; i < 4; ++i) {
 		SDL_Rect rectRuler = drawRuler(
 				ren, 256,
@@ -2912,24 +2963,40 @@ S_PICK_rewq:
 					setModePick(mode);
 					break;
 				case SDLK_f:
-					state.drag.pick.pickRed = 1;
-					if (state.drag.action != D_PICK)
-						setDrag(D_PICK);
+					if (!state.space) {
+						state.drag.pick.pickRed = 1;
+						if (state.drag.action != D_PICK)
+							setDrag(D_PICK);
+					} else {
+						state.draw.drawRed = !state.draw.drawRed;
+					}
 					break;
 				case SDLK_d:
-					state.drag.pick.pickGreen = 1;
-					if (state.drag.action != D_PICK)
-						setDrag(D_PICK);
+					if (!state.space) {
+						state.drag.pick.pickGreen = 1;
+						if (state.drag.action != D_PICK)
+							setDrag(D_PICK);
+					} else {
+						state.draw.drawGreen = !state.draw.drawGreen;
+					}
 					break;
 				case SDLK_s:
-					state.drag.pick.pickBlue = 1;
-					if (state.drag.action != D_PICK)
-						setDrag(D_PICK);
+					if (!state.space) {
+						state.drag.pick.pickBlue = 1;
+						if (state.drag.action != D_PICK)
+							setDrag(D_PICK);
+					} else {
+						state.draw.drawBlue = !state.draw.drawBlue;
+					}
 					break;
 				case SDLK_a:
-					state.drag.pick.pickAlpha = 1;
-					if (state.drag.action != D_PICK)
-						setDrag(D_PICK);
+					if (!state.space) {
+						state.drag.pick.pickAlpha = 1;
+						if (state.drag.action != D_PICK)
+							setDrag(D_PICK);
+					} else {
+						state.draw.drawAlpha = !state.draw.drawAlpha;
+					}
 					break;
 				default:
 					break;
