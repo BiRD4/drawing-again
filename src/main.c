@@ -32,8 +32,8 @@ char *dialogFileSave(char *title, char *initPath)
 #define MAX_ZOOM 64
 #define MAX_PATHLEN 1024
 #define INIT_SCALE 16
-#define INIT_WIN_WIDTH 512
-#define INIT_WIN_HEIGHT 512
+#define INIT_WIN_WIDTH 576
+#define INIT_WIN_HEIGHT 576
 #define INIT_CANVAS_WIDTH 16
 #define INIT_CANVAS_HEIGHT 16
 
