@@ -98,12 +98,12 @@ Additionally, multifile drag and drop is supported.
 
 #### Pick scope
 
-| F/D/S/A mode control   | Key |
-| ---------------------- | :-: |
-| Red channel            |  F  |
-| Green channel          |  D  |
-| Blue channel           |  S  |
-| Alpha channel          |  A  |
+| F/D/S/A mode control   |    Key    |
+| ---------------------- | :-------: |
+| (Toggle) red channel   | (Space-)F |
+| (Toggle) green channel | (Space-)D |
+| (Toggle) blue channel  | (Space-)S |
+| (Toggle) alpha channel | (Space-)A |
 
 ## Building
 This program uses [SDL2](https://wiki.libsdl.org/SDL2/FrontPage "SDL2 Wiki") and [tinyfiledialogs](https://sourceforge.net/projects/tinyfiledialogs/ "tinyfiledialogs Website").
