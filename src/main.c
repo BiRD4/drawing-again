@@ -2293,8 +2293,6 @@ int frameDo()
 			color = state.colors.s;
 		else if (state.drag.eyedrop.pickA)
 			color = state.colors.a;
-		else
-			goto skipChannelRulers;
 	} else {
 		goto skipChannelRulers;
 	}
