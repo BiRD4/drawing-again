@@ -89,12 +89,12 @@ Additionally, multifile drag and drop is supported.
 
 #### Canvas scope
 
-| Pixel/line/rect/fill mode control |     Key     |
-| --------------------------------- | :---------: |
-| (Eyedrop) F color                 |  (Space-)F  |
-| (Eyedrop) D color                 |  (Space-)D  |
-| (Eyedrop) S color                 |  (Space-)S  |
-| (Eyedrop) A color                 |  (Space-)A  |
+| Pixel/line/rect/fill mode control |    Key    |
+| --------------------------------- | :-------: |
+| (Eyedrop) F color                 | (Space-)F |
+| (Eyedrop) D color                 | (Space-)D |
+| (Eyedrop) S color                 | (Space-)S |
+| (Eyedrop) A color                 | (Space-)A |
 
 #### Pick scope
 
