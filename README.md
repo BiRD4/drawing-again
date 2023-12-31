@@ -121,7 +121,7 @@ Releases are zipped with `zip`.
 - [ ] Select/move/copy/paste tool (probably contigent on undo/redo)
 - [ ] Brush editing
 - [ ] Mouse button support
-- [ ] Channel locking
+- [X] Channel locking
 
 ## Monies
 Can give monies if ya want :3\
